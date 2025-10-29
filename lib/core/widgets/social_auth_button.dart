@@ -25,7 +25,7 @@ class SocialAuthButton extends StatelessWidget {
           // Стиль рамки
           side: BorderSide(color: Colors.grey.shade300, width: 1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30.0),
+            borderRadius: BorderRadius.circular(20.0),
           ),
         ),
         child: Row(

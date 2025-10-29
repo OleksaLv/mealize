@@ -16,9 +16,9 @@ class MyApp extends StatelessWidget {
         // Налаштовуємо головні кольори теми
         colorScheme: ColorScheme.fromSeed(
           // Це фіолетовий, схожий на твій дизайн
-          seedColor: const Color(0xFF6A1B9A), 
+          seedColor: const Color(0xFF7F32B5), 
           // Вказуємо його як основний
-          primary: const Color(0xFF6A1B9A), 
+          primary: const Color(0xFF7F32B5), 
           // Вказуємо, що текст на ньому має бути білим
           onPrimary: Colors.white, 
         ),

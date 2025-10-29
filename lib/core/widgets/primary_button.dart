@@ -30,7 +30,7 @@ class PrimaryButton extends StatelessWidget {
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           shape: RoundedRectangleBorder(
             // Робимо кути заокругленими, як у дизайні
-            borderRadius: BorderRadius.circular(30.0),
+            borderRadius: BorderRadius.circular(20.0),
           ),
         ),
         child: Text(
