@@ -50,14 +50,14 @@ class LoginScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
 
-                // Кастомний віджет поля для Email
+                // Поле електронної пошти
                 const AppTextField(
                   labelText: 'Email',
                   hintText: 'emailaddress@gmail.com',
                 ),
                 const SizedBox(height: 20),
 
-                // Кастомний віджет поля для Пароля
+                // Поле пароля
                 const AppTextField(
                   labelText: 'Password',
                   hintText: '********',
