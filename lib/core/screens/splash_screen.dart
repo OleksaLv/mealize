@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // Для таймера
+import 'dart:async'; // For timer
 import 'login_screen.dart'; 
 
 class SplashScreen extends StatefulWidget {
@@ -18,11 +18,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateToLogin() {
-    // Таймер на 2 секунди
     Timer(const Duration(seconds: 2), () {
-      // Перевірка, чи віджет ще існує, перед навігацією
+      // check if exists
       if (mounted) {
-        // pushReplacement, щоб користувач не міг повернутися назад на Splash Screen
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const LoginScreen(),
