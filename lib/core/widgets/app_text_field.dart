@@ -7,6 +7,7 @@ class AppTextField extends StatelessWidget {
     this.hintText,
     this.obscureText = false,
     this.controller,
+    this.validator,
   });
 
   /// Підпис, який відображається над полем
@@ -16,6 +17,8 @@ class AppTextField extends StatelessWidget {
   final String? hintText;
   final bool obscureText;
   final TextEditingController? controller;
+
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +41,7 @@ class AppTextField extends StatelessWidget {
         TextFormField(
           controller: controller,
           obscureText: obscureText,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade500),
