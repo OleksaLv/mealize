@@ -12,7 +12,20 @@
           "package_name": "com.example.mealize"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "746157274071-e482as38l9p8ng9qas6nt1s53bns3ag4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mealize",
+            "certificate_hash": "fb34b1edef450aba73d7c551f42944cd9a7b27f5"
+          }
+        },
+        {
+          "client_id": "746157274071-g3vbf97gfl5j87hv0jiqtlvberj3un0k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDP6VuQdGoiw-26r0PpZUp-H5oPG_UN4xY"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "746157274071-g3vbf97gfl5j87hv0jiqtlvberj3un0k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
