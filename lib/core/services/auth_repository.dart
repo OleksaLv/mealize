@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart';
 
 class AuthException implements Exception {
   final String message;
@@ -18,7 +17,7 @@ class AuthRepository {
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
+        _googleSignIn = googleSignIn ?? GoogleSignIn.instance; 
 
   Future<void> signUp({
     required String email,
@@ -54,14 +53,14 @@ class AuthRepository {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || 
-          e.code == 'wrong-password' || 
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
           e.code == 'invalid-credential') {
         throw AuthException('Invalid email or password.');
       } else if (e.code == 'invalid-email') {
-         throw AuthException('Invalid email format.');
+        throw AuthException('Invalid email format.');
       } else if (e.code == 'user-disabled') {
-         throw AuthException('This account has been disabled.');
+        throw AuthException('This account has been disabled.');
       } else {
         throw AuthException('An error occurred. Please try again later.');
       }
@@ -76,45 +75,30 @@ class AuthRepository {
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: null,
+        accessToken: null, 
         idToken: googleAuth.idToken,
       );
 
       await _firebaseAuth.signInWithCredential(credential);
-      
     } on GoogleSignInException catch (e) {
-      
-      // =======================================================
-      // 🐞 ДЕБАГ-КОД (ВИПРАВЛЕНО):
-      debugPrint('!!! CAUGHT GoogleSignInException:'); // 2. Використовуємо debugPrint
-      debugPrint('!!! Error Code: ${e.code}');
-      debugPrint('!!! Error Details: ${e.toString()}'); // 3. Використовуємо e.toString()
-      // =======================================================
-
       if (e.code == GoogleSignInExceptionCode.canceled ||
           e.code == GoogleSignInExceptionCode.interrupted) {
-        return; 
+        return;
       }
       throw AuthException('Google sign-in error. Please try again later.');
-    
-    } on FirebaseAuthException catch (e) {
-      // =======================================================
-      // 🐞 ДЕБАГ-КОД (ВИПРАВЛЕНО):
-      debugPrint('!!! CAUGHT FirebaseAuthException:'); // 2. Використовуємо debugPrint
-      debugPrint('!!! Error Code: ${e.code}');
-      debugPrint('!!! Error Message: ${e.message}'); // (Тут .message існує, все гаразд)
-      // =======================================================
-       throw AuthException('Google authentication error. Please try again later.');
-    
+    } on FirebaseAuthException {
+      throw AuthException('Google authentication error. Please try again later.');
     } catch (e) {
-      // =======================================================
-      // 🐞 ДЕБАГ-КОД (ВИПРАВЛЕНО):
-      debugPrint('!!! CAUGHT Generic Exception:'); // 2. Використовуємо debugPrint
-      debugPrint(e.toString()); // 3. Використовуємо e.toString()
-      // =======================================================
       throw AuthException('An unknown error occurred.');
     }
   }
 
-  // TODO: Add signOut()
+  Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      throw AuthException('Error logging out.');
+    }
+  }
 }

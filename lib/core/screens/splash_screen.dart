@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // For timer
-import 'login_screen.dart'; 
+import 'auth_gate.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,16 +14,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToLogin();
+    _navigateToGate();
   }
 
-  void _navigateToLogin() {
+  void _navigateToGate() {
     Timer(const Duration(seconds: 2), () {
-      // check if exists
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const LoginScreen(),
+            builder: (context) => const AuthGate(),
           ),
         );
       }

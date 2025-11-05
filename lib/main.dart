@@ -12,7 +12,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  await GoogleSignIn.instance.initialize();
+  await GoogleSignIn.instance.initialize(
+    serverClientId: "746157274071-g3vbf97gfl5j87hv0jiqtlvberj3un0k.apps.googleusercontent.com",
+  );
   
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
   

@@ -8,7 +8,6 @@ import '../widgets/divider_with_text.dart';
 import '../widgets/auth_navigation_text.dart';
 
 import 'register_screen.dart';
-import 'schedule_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,11 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ScheduleScreen()),
-        );
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -69,12 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await _authRepository.signInWithGoogle();
-      
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ScheduleScreen()),
-        );
-      }
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,9 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 40),
 
                   PrimaryButton(
-                    // Показуємо "..." під час завантаження
                     text: _isLoading ? 'Logging in...' : 'Log In',
-                    // Блокуємо кнопку під час завантаження
                     onPressed: _isLoading ? null : _submitLogin,
                   ),
                   const SizedBox(height: 30),
@@ -164,7 +151,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   SocialAuthButton(
                     text: 'Continue with Google',
                     iconPath: 'assets/icons/google_logo.png',
-                    // Блокуємо кнопку під час завантаження
                     onPressed: _isLoading ? null : _submitGoogleSignIn,
                   ),
                   const SizedBox(height: 40),

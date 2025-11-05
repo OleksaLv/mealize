@@ -8,8 +8,6 @@ import '../widgets/divider_with_text.dart';
 import '../widgets/auth_navigation_text.dart';
 import '../widgets/custom_app_bar.dart';
 
-import 'schedule_screen.dart';
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -47,10 +45,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ScheduleScreen()),
-        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -71,11 +68,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       await _authRepository.signInWithGoogle();
-      
+
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ScheduleScreen()),
-        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {

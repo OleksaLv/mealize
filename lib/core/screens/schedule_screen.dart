@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; //for date formatting
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'settings_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import '../widgets/custom_fab.dart';
+
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
@@ -45,10 +47,17 @@ class ScheduleScreen extends StatelessWidget {
             color: Colors.black,
             onPressed: () {},
           ),
+
           IconButton(
             icon: const Icon(Icons.person_outline),
             color: Colors.black,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(width: 12),
         ],
