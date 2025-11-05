@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; //for date formatting
-
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import '../widgets/custom_fab.dart';
@@ -33,6 +33,13 @@ class ScheduleScreen extends StatelessWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            color: Colors.red,
+            onPressed: () {
+              FirebaseCrashlytics.instance.crash();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_none_outlined),
             color: Colors.black,
