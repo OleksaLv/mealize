@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
-import 'core/screens/splash_screen.dart'; 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'core/screens/splash_screen.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
   runApp(const MyApp());
 }
 
@@ -13,24 +21,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'mealize',
       theme: ThemeData(
-        // Налаштовуємо головні кольори теми
         colorScheme: ColorScheme.fromSeed(
-          // Це фіолетовий, схожий на твій дизайн
-          seedColor: const Color(0xFF7F32B5), 
-          // Вказуємо його як основний
-          primary: const Color(0xFF7F32B5), 
-          // Вказуємо, що текст на ньому має бути білим
-          onPrimary: Colors.white, 
+          seedColor: const Color(0xFF7F32B5),
+          primary: const Color(0xFF7F32B5),
+          onPrimary: Colors.white,
         ),
-        // Використовуємо дизайн Material 3
         useMaterial3: true,
       ),
-
-      // Splashscreen як домашній екран
       home: const SplashScreen(),
-
-      // Прибирати банер "Debug" у кутку
-      debugShowCheckedModeBanner: false, 
+      debugShowCheckedModeBanner: false,
     );
   }
 }

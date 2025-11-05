@@ -16,13 +16,11 @@ class SocialAuthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 56, // Така ж висота, як у PrimaryButton
+      height: 56,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          // Колір тексту кнопки
           foregroundColor: Colors.black, 
-          // Стиль рамки
           side: BorderSide(color: Colors.grey.shade300, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
@@ -31,7 +29,6 @@ class SocialAuthButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Зображення з ассетів
             Image.asset(
               iconPath,
               height: 24,

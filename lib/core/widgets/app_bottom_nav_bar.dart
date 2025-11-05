@@ -7,38 +7,25 @@ class AppBottomNavBar extends StatelessWidget {
     required this.onTap,
   });
 
-  /// Індекс поточної вибраної вкладки
-  final int currentIndex;
-
-  /// Функція, що викликається при натисканні на вкладку
+  final int currentIndex; // Selected tab
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    // Стандартний віджет BottomNavigationBar
     return BottomNavigationBar(
-      // Поточний індекс, щоб віджет знав, яку іконку підсвітити
       currentIndex: currentIndex,
-      onTap: onTap,
-      
-      // Колір вибраної іконки з теми
+      onTap: onTap,      
       selectedItemColor: Theme.of(context).colorScheme.primary,
-      // Колір невибраних іконок
       unselectedItemColor: Colors.grey.shade600,
-
       showSelectedLabels: true,
       showUnselectedLabels: true,
-
       selectedFontSize: 12.0,
       unselectedFontSize: 12.0,
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
       unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-
-      // Тип фіксований, щоб іконки не "стрибали"
       type: BottomNavigationBarType.fixed,
       elevation: 0,
       backgroundColor: Colors.white,
-
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.calendar_month_outlined),

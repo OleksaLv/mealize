@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "746157274071",
+    "project_id": "mealize-1",
+    "storage_bucket": "mealize-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746157274071:android:98736b31a7e3cf7a54d192",
+        "android_client_info": {
+          "package_name": "com.example.mealize"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP6VuQdGoiw-26r0PpZUp-H5oPG_UN4xY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

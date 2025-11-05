@@ -100,7 +100,7 @@ class _WeekDaySelector extends StatefulWidget {
 }
 
 class _WeekDaySelectorState extends State<_WeekDaySelector> {
-  late DateTime _selectedDate;
+  DateTime _selectedDate = DateTime.now();
   final ScrollController _scrollController = ScrollController();
   final List<DateTime?> _daysInMonth = [];
 
@@ -109,11 +109,10 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
     _populateDays();
 
     // Scroll to the current week after the layout is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_)  {
       _scrollToCurrentWeek();
     });
   }

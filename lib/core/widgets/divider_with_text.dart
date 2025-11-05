@@ -6,12 +6,11 @@ class DividerWithText extends StatelessWidget {
     required this.text,
   });
 
-  /// Текст, що відображатиметься посередині
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    // Віджет-розділювач, щоб не дублювати код
+    // Widget divider to avoid code duplication
     final divider = Expanded(
       child: Divider(
         color: Colors.grey.shade300,
@@ -22,9 +21,7 @@ class DividerWithText extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Лінія зліва
         divider,
-        // Текст з відступами
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -35,7 +32,6 @@ class DividerWithText extends StatelessWidget {
             ),
           ),
         ),
-        // Лінія справа
         divider,
       ],
     );
