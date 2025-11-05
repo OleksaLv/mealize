@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../constants/app_strings.dart';
 
 class AuthException implements Exception {
   final String message;
@@ -17,7 +18,7 @@ class AuthRepository {
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.instance; 
+        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
   Future<void> signUp({
     required String email,
@@ -30,16 +31,16 @@ class AuthRepository {
       );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        throw AuthException('The password is too weak.');
+        throw AuthException(AppStrings.authWeakPassword);
       } else if (e.code == 'email-already-in-use') {
-        throw AuthException('This email is already in use.');
+        throw AuthException(AppStrings.authEmailInUse);
       } else if (e.code == 'invalid-email') {
-        throw AuthException('Invalid email format.');
+        throw AuthException(AppStrings.authInvalidEmail);
       } else {
-        throw AuthException('An error occurred. Please try again later.');
+        throw AuthException(AppStrings.authErrorOccurred);
       }
     } catch (e) {
-      throw AuthException('An unknown error occurred.');
+      throw AuthException(AppStrings.authUnknownError);
     }
   }
 
@@ -56,16 +57,16 @@ class AuthRepository {
       if (e.code == 'user-not-found' ||
           e.code == 'wrong-password' ||
           e.code == 'invalid-credential') {
-        throw AuthException('Invalid email or password.');
+        throw AuthException(AppStrings.authInvalidCredential);
       } else if (e.code == 'invalid-email') {
-        throw AuthException('Invalid email format.');
+        throw AuthException(AppStrings.authInvalidEmail);
       } else if (e.code == 'user-disabled') {
-        throw AuthException('This account has been disabled.');
+        throw AuthException(AppStrings.authUserDisabled);
       } else {
-        throw AuthException('An error occurred. Please try again later.');
+        throw AuthException(AppStrings.authErrorOccurred);
       }
     } catch (e) {
-      throw AuthException('An unknown error occurred.');
+      throw AuthException(AppStrings.authUnknownError);
     }
   }
 
@@ -85,11 +86,11 @@ class AuthRepository {
           e.code == GoogleSignInExceptionCode.interrupted) {
         return;
       }
-      throw AuthException('Google sign-in error. Please try again later.');
+      throw AuthException(AppStrings.authGoogleError);
     } on FirebaseAuthException {
-      throw AuthException('Google authentication error. Please try again later.');
+      throw AuthException(AppStrings.authGoogleAuthError);
     } catch (e) {
-      throw AuthException('An unknown error occurred.');
+      throw AuthException(AppStrings.authUnknownError);
     }
   }
 
@@ -98,7 +99,7 @@ class AuthRepository {
       await _googleSignIn.signOut();
       await _firebaseAuth.signOut();
     } catch (e) {
-      throw AuthException('Error logging out.');
+      throw AuthException(AppStrings.authSignOutError);
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../constants/app_strings.dart';
 import '../services/auth_repository.dart';
 import '../widgets/custom_app_bar.dart';
 
@@ -10,13 +11,13 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authRepository = AuthRepository();
     final currentUser = FirebaseAuth.instance.currentUser;
-    final userEmail = currentUser?.email ?? 'No email available';
+    final userEmail = currentUser?.email ?? AppStrings.noEmailAvailable;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: const Text(
-          'Settings',
+          AppStrings.settings,
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -42,7 +43,6 @@ class SettingsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 150), 
-            
             Text(
               userEmail,
               style: TextStyle(
@@ -51,17 +51,15 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            
             TextButton(
               onPressed: () {
                 authRepository.signOut();
-                
                 if (Navigator.of(context).canPop()) {
                    Navigator.of(context).popUntil((route) => route.isFirst);
                 }
               },
               child: const Text(
-                'Log Out',
+                AppStrings.logOut,
                 style: TextStyle(
                   color: Colors.red,
                   fontSize: 16,

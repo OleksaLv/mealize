@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_strings.dart';
 import '../services/auth_repository.dart';
 
 import '../widgets/app_text_field.dart';
@@ -35,19 +36,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       await _authRepository.signUp(
         email: _emailController.text,
         password: _passwordController.text,
       );
-
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,7 +65,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       await _authRepository.signInWithGoogle();
-
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
@@ -93,7 +89,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.white,      
       appBar: const CustomAppBar(),
-      
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -104,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Sign up',
+                    AppStrings.signUpTitle,
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -112,7 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Create an account to continue',
+                    AppStrings.signUpSubtitle,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade600,
@@ -121,14 +116,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 40),
                   AppTextField(
                     controller: _emailController,
-                    labelText: 'Email',
-                    hintText: 'emailaddress@gmail.com',
+                    labelText: AppStrings.email,
+                    hintText: AppStrings.emailHint,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
+                        return AppStrings.emailEmptyError;
                       }
                       if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                        return 'Please enter a valid email address';
+                        return AppStrings.emailInvalidError;
                       }
                       return null;
                     },
@@ -136,15 +131,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 20),
                   AppTextField(
                     controller: _passwordController,
-                    labelText: 'Password',
-                    hintText: '********',
+                    labelText: AppStrings.password,
+                    hintText: AppStrings.passwordHint,
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
+                        return AppStrings.passwordEmptyError;
                       }
                       if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                        return AppStrings.passwordLengthError;
                       }
                       return null;
                     },
@@ -152,29 +147,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 20),
                   AppTextField(
                     controller: _repeatPasswordController,
-                    labelText: 'Repeat password',
-                    hintText: '********',
+                    labelText: AppStrings.repeatPassword,
+                    hintText: AppStrings.passwordHint,
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please repeat your password';
+                        return AppStrings.passwordRepeatError;
                       }
                       if (value != _passwordController.text) {
-                        return 'Passwords do not match';
+                        return AppStrings.passwordMismatchError;
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 40),
                   PrimaryButton(
-                    text: _isLoading ? 'Registering...' : 'Register',
+                    text: _isLoading ? AppStrings.registering : AppStrings.register,
                     onPressed: _isLoading ? null : _submitRegister,
                   ),
                   const SizedBox(height: 30),
-                  const DividerWithText(text: 'Or'),
+                  const DividerWithText(text: AppStrings.or),
                   const SizedBox(height: 30),
                   SocialAuthButton(
-                    text: 'Continue with Google',
+                    text: AppStrings.continueWithGoogle,
                     iconPath: 'assets/icons/google_logo.png',
                     onPressed: _isLoading ? null : _submitGoogleSignIn,
                   ),
@@ -182,8 +177,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: AuthNavigationText(
-                      text: "Already have an account?",
-                      buttonText: 'Log In',
+                      text: AppStrings.haveAccount,
+                      buttonText: AppStrings.logIn,
                       onTap: () {
                         Navigator.of(context).pop();
                       },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_strings.dart';
 import '../services/auth_repository.dart';
 
 import '../widgets/app_text_field.dart';
@@ -34,15 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       await _authRepository.signIn(
         email: _emailController.text,
         password: _passwordController.text,
       );
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await _authRepository.signInWithGoogle();
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const SizedBox(height: 60),
                   const Text(
-                    'Sign in to your\naccount',
+                    AppStrings.signInTitle,
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -103,53 +100,50 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Enter your email and password to log in',
+                    AppStrings.signInSubtitle,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade600,
                     ),
                   ),
                   const SizedBox(height: 40),
-
                   AppTextField(
                     controller: _emailController,
-                    labelText: 'Email',
-                    hintText: 'emailaddress@gmail.com',
+                    labelText: AppStrings.email,
+                    hintText: AppStrings.emailHint,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
+                        return AppStrings.emailEmptyError;
                       }
                       if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                        return 'Please enter a valid email address';
+                        return AppStrings.emailInvalidError;
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
-
                   AppTextField(
                     controller: _passwordController,
-                    labelText: 'Password',
-                    hintText: '********',
+                    labelText: AppStrings.password,
+                    hintText: AppStrings.passwordHint,
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return AppStrings.passwordEmptyError;
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 40),
-
                   PrimaryButton(
-                    text: _isLoading ? 'Logging in...' : 'Log In',
+                    text: _isLoading ? AppStrings.loggingIn : AppStrings.logIn,
                     onPressed: _isLoading ? null : _submitLogin,
                   ),
                   const SizedBox(height: 30),
-                  const DividerWithText(text: 'Or'),
+                  const DividerWithText(text: AppStrings.or),
                   const SizedBox(height: 30),
                   SocialAuthButton(
-                    text: 'Continue with Google',
+                    text: AppStrings.continueWithGoogle,
                     iconPath: 'assets/icons/google_logo.png',
                     onPressed: _isLoading ? null : _submitGoogleSignIn,
                   ),
@@ -157,8 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: AuthNavigationText(
-                      text: "Don't have account?",
-                      buttonText: 'Sign Up',
+                      text: AppStrings.noAccount,
+                      buttonText: AppStrings.signUp,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
