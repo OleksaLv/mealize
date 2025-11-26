@@ -19,7 +19,7 @@ class SettingsScreen extends StatelessWidget {
         title: const Text(
           AppStrings.settings,
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
@@ -42,7 +42,6 @@ class SettingsScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 150), 
             Text(
               userEmail,
               style: TextStyle(

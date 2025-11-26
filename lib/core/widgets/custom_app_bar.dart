@@ -19,7 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,      
       backgroundColor: Colors.transparent,      
       foregroundColor: Colors.black,
-      automaticallyImplyLeading: true, 
+      automaticallyImplyLeading: false, 
       leading: leading,
       title: title,
       actions: actions,
