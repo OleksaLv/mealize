@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import '../constants/app_strings.dart';
-import 'settings_screen.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/app_bottom_nav_bar.dart';
-import '../widgets/custom_fab.dart';
+import 'package:mealize/core/constants/app_strings.dart';
+import 'package:mealize/features/settings/screens/settings_screen.dart';
+import 'package:mealize/core/widgets/custom_app_bar.dart';
+import 'package:mealize/core/widgets/app_bottom_nav_bar.dart';
+import 'package:mealize/core/widgets/custom_fab.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});

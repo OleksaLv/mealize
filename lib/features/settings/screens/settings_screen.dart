@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../constants/app_strings.dart';
-import '../services/auth_repository.dart';
-import '../widgets/custom_app_bar.dart';
+import 'package:mealize/core/constants/app_strings.dart';
+import 'package:mealize/core/services/auth_repository.dart';
+import 'package:mealize/core/widgets/custom_app_bar.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../constants/app_strings.dart';
-import '../services/auth_repository.dart';
+import 'package:mealize/core/constants/app_strings.dart';
+import 'package:mealize/core/services/auth_repository.dart';
 
-import '../widgets/app_text_field.dart';
-import '../widgets/primary_button.dart';
-import '../widgets/social_auth_button.dart';
-import '../widgets/divider_with_text.dart';
-import '../widgets/auth_navigation_text.dart';
-import '../widgets/custom_app_bar.dart';
+import 'package:mealize/core/widgets/app_text_field.dart';
+import 'package:mealize/core/widgets/primary_button.dart';
+import 'package:mealize/core/widgets/social_auth_button.dart';
+import 'package:mealize/core/widgets/divider_with_text.dart';
+import 'package:mealize/core/widgets/auth_navigation_text.dart';
+import 'package:mealize/core/widgets/custom_app_bar.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
