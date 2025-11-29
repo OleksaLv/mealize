@@ -29,6 +29,9 @@ abstract class AppStrings {
   // ScheduleScreen
   static const String schedule = 'Schedule';
 
+  // PantryScreen
+  static const String pantry = 'Pantry';
+
   // SettingsScreen
   static const String settings = 'Settings';
   static const String noEmailAvailable = 'No email available';

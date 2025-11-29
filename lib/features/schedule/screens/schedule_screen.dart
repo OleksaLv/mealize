@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:mealize/core/constants/app_strings.dart';
+import 'package:mealize/features/pantry/screens/pantry_screen.dart';
+import 'package:mealize/features/recipes/screens/recipes_screen.dart';
 import 'package:mealize/features/settings/screens/settings_screen.dart';
 import 'package:mealize/core/widgets/custom_app_bar.dart';
 import 'package:mealize/core/widgets/app_bottom_nav_bar.dart';
@@ -97,7 +99,26 @@ class ScheduleScreen extends StatelessWidget {
       ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 0,
-        onTap: (index) {},
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              break;
+            case 1:
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const PantryScreen(),
+                ),
+              );
+              break;
+            case 2:
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const RecipesScreen(),
+                ),
+              );
+              break;
+          }
+        },
       ),
       floatingActionButton: const CustomFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

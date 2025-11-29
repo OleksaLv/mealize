@@ -6,7 +6,7 @@ class PantryRepository {
 
   Future<List<Ingredient>> getPantryItems() async {
     final db = await _dbHelper.database;
-    final result = await db.query('ingredients', orderBy: 'name ASC'); // Сортуємо за алфавітом
+    final result = await db.query('ingredients', orderBy: 'name ASC');
     return result.map((json) => Ingredient.fromMap(json)).toList();
   }
 

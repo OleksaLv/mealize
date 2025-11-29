@@ -70,10 +70,10 @@ class DatabaseHelper {
 
   Future<void> _seedData(Database db) async {
     final ingredients = [
-      const Ingredient(name: 'Apricot', unit: 'pcs', quantity: 3, photoPath: 'assets/images/apricot.jpg'),
+      const Ingredient(name: 'Apricot', notes: '1 is about very-very small (like a grape)', unit: 'pcs', quantity: 3, photoPath: 'assets/images/apricot.jpg'),
       const Ingredient(name: 'Black garlic', unit: 'pcs', quantity: 3, photoPath: 'assets/images/black_garlic.jpg'),
       const Ingredient(name: 'Black pepper', unit: 'g', quantity: 15, photoPath: 'assets/images/black_pepper.jpg'),
-      const Ingredient(name: 'Cep', unit: 'g', quantity: 200, photoPath: 'assets/images/cep.jpg'),
+      const Ingredient(name: 'Cep', unit: 'g', quantity: 200, photoPath: 'assets/images/cep.jpeg'),
       const Ingredient(name: 'Egg', unit: 'pcs', quantity: 11, photoPath: 'assets/images/egg.jpg'),
       const Ingredient(name: 'Milk', unit: 'ml', quantity: 250, photoPath: 'assets/images/milk.jpg'),
       const Ingredient(name: 'Salt', unit: 'g', quantity: 400, photoPath: 'assets/images/salt.jpg'),

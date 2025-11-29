@@ -1,6 +1,7 @@
 class Ingredient {
   final int? id;
   final String name;
+  final String? notes;
   final String unit;
   final double quantity;
   final String? photoPath;
@@ -10,6 +11,7 @@ class Ingredient {
     this.id,
     required this.name,
     required this.unit,
+    this.notes,
     this.quantity = 0.0,
     this.photoPath,
     this.isCustom = false,
@@ -19,6 +21,7 @@ class Ingredient {
     return {
       'id': id,
       'name': name,
+      'notes': notes,
       'unit': unit,
       'quantity': quantity,
       'photoPath': photoPath,
@@ -30,6 +33,7 @@ class Ingredient {
     return Ingredient(
       id: map['id'] as int?,
       name: map['name'] as String,
+      notes: map['notes'] as String?,
       unit: map['unit'] as String,
       quantity: (map['quantity'] as num).toDouble(),
       photoPath: map['photoPath'] as String?,
@@ -40,6 +44,7 @@ class Ingredient {
   Ingredient copyWith({
     int? id,
     String? name,
+    String? notes,
     String? unit,
     double? quantity,
     String? photoPath,
@@ -48,6 +53,7 @@ class Ingredient {
     return Ingredient(
       id: id ?? this.id,
       name: name ?? this.name,
+      notes: notes ?? this.notes,
       unit: unit ?? this.unit,
       quantity: quantity ?? this.quantity,
       photoPath: photoPath ?? this.photoPath,
