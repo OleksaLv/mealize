@@ -8,6 +8,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.controller,
     this.validator,
+    this.enabled = true,
   });
 
   /// Підпис, який відображається над полем
@@ -19,6 +20,7 @@ class AppTextField extends StatelessWidget {
   final TextEditingController? controller;
 
   final String? Function(String?)? validator;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +41,7 @@ class AppTextField extends StatelessWidget {
 
         // Текстове поле
         TextFormField(
+          enabled: enabled,
           controller: controller,
           obscureText: obscureText,
           validator: validator,
@@ -46,7 +49,7 @@ class AppTextField extends StatelessWidget {
             hintText: hintText,
             hintStyle: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
             filled: true,
-            fillColor: Theme.of(context).colorScheme.secondary,
+            fillColor: enabled ? Theme.of(context).colorScheme.secondary : Theme.of(context).colorScheme.tertiary,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
@@ -54,6 +57,10 @@ class AppTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 24,

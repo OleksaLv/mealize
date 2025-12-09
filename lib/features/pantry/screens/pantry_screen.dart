@@ -21,8 +21,8 @@ class PantryScreen extends StatefulWidget {
 
 class _PantryScreenState extends State<PantryScreen> {
   String _searchQuery = '';
-  bool _filterStandard = false;
-  bool _filterCustom = false;
+  bool _filterStandard = true;
+  bool _filterCustom = true;
 
   @override
   void initState() {
@@ -231,6 +231,8 @@ class _PantryTile extends StatelessWidget {
                 ),
                 Text(
                   ingredient.notes ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSecondary),
                 ),
               ],

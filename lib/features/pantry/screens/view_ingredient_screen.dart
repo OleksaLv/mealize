@@ -23,6 +23,8 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   String? _photoPath;
   late TextEditingController _quantityController;
 
+  bool get _isLocked => widget.ingredient != null && !widget.ingredient!.isCustom;
+
   @override
   void initState() {
     super.initState();
@@ -32,14 +34,39 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
     _unit = widget.ingredient?.unit ?? 'pcs';
     _photoPath = widget.ingredient?.photoPath;
     _quantityController = TextEditingController(text: _quantity.toInt().toString());
+
+    _titleController.addListener(_updateState);
+    _notesController.addListener(_updateState);
+    _quantityController.addListener(_updateState);
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_updateState);
+    _notesController.removeListener(_updateState);
+    _quantityController.removeListener(_updateState);
     _titleController.dispose();
     _notesController.dispose();
     _quantityController.dispose();
     super.dispose();
+  }
+
+  void _updateState() {
+    setState(() {}); 
+  }
+
+  bool get _hasChanges {
+    if (widget.ingredient == null) {
+      return _titleController.text.isNotEmpty;
+    }
+    
+    final initialNotes = widget.ingredient?.notes ?? '';
+    
+    return _titleController.text != widget.ingredient!.name ||
+           _notesController.text != initialNotes ||
+           _quantity != widget.ingredient!.quantity ||
+           _unit != widget.ingredient!.unit ||
+           _photoPath != widget.ingredient!.photoPath;
   }
 
   void _onSave() {
@@ -52,7 +79,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
       unit: _unit,
       quantity: _quantity,
       photoPath: _photoPath,
-      isCustom: true,
+      isCustom: widget.ingredient?.isCustom ?? true,
     );
 
     if (widget.ingredient == null) {
@@ -66,35 +93,100 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   void _onDelete() {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 48),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Delete "${widget.ingredient?.name}"?', 
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 8),
-            const Text('Are you sure you want to delete this ingredient? This action cannot be undone.',
-              textAlign: TextAlign.center),
-          ],
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                  Icons.warning_rounded,
+                  color: Colors.red,
+                  size: 64,
+                ),
+              const SizedBox(height: 20),
+
+              Text(
+                'Delete "${widget.ingredient?.name}"?',
+                textAlign: TextAlign.start,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Text(
+                'Are you sure you want to delete this ingredient? This action cannot be undone.',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          foregroundColor: Colors.black87,
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (widget.ingredient?.id != null) {
+                            context.read<PantryCubit>().deleteIngredient(widget.ingredient!.id!);
+                          }
+                          Navigator.of(ctx).pop();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError),
-            onPressed: () {
-              if (widget.ingredient?.id != null) {
-                context.read<PantryCubit>().deleteIngredient(widget.ingredient!.id!);
-              }
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
       ),
     );
   }
@@ -102,6 +194,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.ingredient != null;
+    final lockedColor = Theme.of(context).colorScheme.tertiary; 
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -124,73 +217,111 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             AppTextField(
               labelText: 'Title',
               controller: _titleController,
+              enabled: !_isLocked, 
             ),
+            
             const SizedBox(height: 24),
+            
             const Text('Photo', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(
               children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    margin: const EdgeInsets.only(right: 16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Theme.of(context).colorScheme.onTertiary,
-                      image: _photoPath != null
-                          ? DecorationImage(image: AssetImage(_photoPath!), fit: BoxFit.cover)
-                          : null,
-                    ),
-                    child: _photoPath == null ? const Icon(Icons.image_not_supported) : null,
+                Container(
+                  width: 100,
+                  height: 100,
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: _photoPath != null
+                        ? DecorationImage(image: AssetImage(_photoPath!), fit: BoxFit.cover)
+                        : null,
                   ),
+                  child: _photoPath == null ? const Icon(Icons.image_not_supported) : null,
+                ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(
-                        child: OutlinedButton(onPressed: () {}, child: const Text('Take photo'))
+                        child: OutlinedButton(
+                          onPressed: _isLocked ? null : () {}, 
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: _isLocked ? lockedColor : null,
+                            side: _isLocked ? BorderSide.none : null,
+                          ),
+                          child: Text('Take photo', selectionColor: Colors.black,)
+                        )
                       ),
                       const SizedBox(height: 8),
                       SizedBox(
-                        child: OutlinedButton(onPressed: () {}, child: const Text('Select from gallery')),
+                        child: OutlinedButton(
+                          onPressed: _isLocked ? null : () {}, 
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: _isLocked ? lockedColor : null,
+                            side: _isLocked ? BorderSide.none : null,
+                          ),
+                          child: Text('Select from gallery')
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
+            
             const SizedBox(height: 24),
+            
             const Text('Units of measurement', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: Theme.of(context).colorScheme.secondary,
-                border: Border.all(color: Theme.of(context).colorScheme.outline),
+                color: _isLocked ? lockedColor : Theme.of(context).colorScheme.secondary,
+                border: Border.all(color: _isLocked ? Colors.transparent : Theme.of(context).colorScheme.outline),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _unit,
                   isExpanded: true,
-                  items: ['pcs', 'g', 'ml',].map((String value) {
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                  iconEnabledColor: Theme.of(context).colorScheme.onSecondary,
+                  iconDisabledColor: Theme.of(context).colorScheme.onSecondary,
+                  items: ['pcs', 'g', 'ml', 'kg', 'l'].map((String value) {
                     return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
-                  onChanged: (newValue) => setState(() => _unit = newValue!),
+                  onChanged: _isLocked ? null : (newValue) => setState(() => _unit = newValue!),
                 ),
               ),
             ),
+            
             const SizedBox(height: 24),
+            
             const Text('Notes', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             TextFormField(
               maxLines: 3,
               controller: _notesController,
               decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                filled: true,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+                ),
+                fillColor: Theme.of(context).colorScheme.secondary,
               ),
             ),
+            
             const SizedBox(height: 24),
+            
             const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(
@@ -255,22 +386,29 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                 ),
               ],
             ),
+            
             const SizedBox(height: 40),
+            
             Row(
               children: [
                 if (isEditing)
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError,
+                        disabledBackgroundColor: Theme.of(context).colorScheme.error.withAlpha(128), 
+                        disabledForegroundColor: Theme.of(context).colorScheme.onError,
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Theme.of(context).colorScheme.onError,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        minimumSize: const Size(0, 50)
+                        minimumSize: const Size(0, 50),
+                        elevation: _isLocked ? 0 : 2,
                       ),
-                      onPressed: _onDelete,
+                      onPressed: _isLocked ? null : _onDelete,
                       child: const Text('Delete'),
                     ),
                   ),
                 if (isEditing) const SizedBox(width: 16),
+                
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
@@ -282,10 +420,11 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                   ),
                 ),
                 const SizedBox(width: 16),
+                
                 Expanded(
                   child: PrimaryButton(
                     text: 'Save',
-                    onPressed: _onSave,
+                    onPressed: _hasChanges ? _onSave : null,
                   ),
                 ),
               ],
