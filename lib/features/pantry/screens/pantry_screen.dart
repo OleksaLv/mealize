@@ -104,6 +104,9 @@ class _PantryScreenState extends State<PantryScreen> {
 
           Expanded(
             child: BlocBuilder<PantryCubit, PantryState>(
+              buildWhen: (previous, current) {
+                return !(previous is PantryLoaded && current is PantryLoading);
+              },
               builder: (context, state) {
                 if (state is PantryLoading) {
                   return const Center(child: CircularProgressIndicator());
