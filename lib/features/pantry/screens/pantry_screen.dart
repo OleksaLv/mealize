@@ -33,7 +33,7 @@ class _PantryScreenState extends State<PantryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       appBar: CustomAppBar(
         title: const Text(
           AppStrings.pantry,
@@ -46,12 +46,12 @@ class _PantryScreenState extends State<PantryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_none),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSecondary,
             onPressed: () {}
             ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSecondary,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -88,8 +88,15 @@ class _PantryScreenState extends State<PantryScreen> {
                 hintText: 'Search ingredients...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                fillColor: Theme.of(context).colorScheme.secondary,
+                 enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+                ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
             ),
@@ -125,7 +132,7 @@ class _PantryScreenState extends State<PantryScreen> {
                     },
                   );
                 } else if (state is PantryError) {
-                  return Center(child: Text(state.message, style: const TextStyle(color: Colors.red)));
+                  return Center(child: Text(state.message, style: TextStyle(color: Theme.of(context).colorScheme.error)));
                 }
                 return const SizedBox.shrink();
               },
@@ -179,12 +186,12 @@ class _PantryScreenState extends State<PantryScreen> {
       ),
       selected: isSelected,
       onSelected: onSelected,
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
       checkmarkColor: Theme.of(context).colorScheme.primary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       showCheckmark: false,
-      side: BorderSide.none,
+      side:BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
     ),
   );
   }
@@ -206,7 +213,7 @@ class _PantryTile extends StatelessWidget {
             height: 50,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: Colors.grey.shade200,
+              color: Theme.of(context).colorScheme.tertiary,
               image: ingredient.photoPath != null
                   ? DecorationImage(image: AssetImage(ingredient.photoPath!), fit: BoxFit.cover)
                   : null,
@@ -224,7 +231,7 @@ class _PantryTile extends StatelessWidget {
                 ),
                 Text(
                   ingredient.notes ?? '',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSecondary),
                 ),
               ],
             ),
@@ -238,7 +245,7 @@ class _PantryTile extends StatelessWidget {
               }
             },
             style: IconButton.styleFrom(
-              backgroundColor: Colors.grey.shade200, 
+              backgroundColor: Theme.of(context).colorScheme.tertiary, 
               padding: EdgeInsets.zero, 
               minimumSize: const Size(32, 32),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -259,7 +266,7 @@ class _PantryTile extends StatelessWidget {
               context.read<PantryCubit>().updateIngredient(updated);
             },
             style: IconButton.styleFrom(
-              backgroundColor: Colors.grey.shade200, 
+              backgroundColor: Theme.of(context).colorScheme.tertiary, 
               padding: EdgeInsets.zero, 
               minimumSize: const Size(32, 32),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -272,9 +279,9 @@ class _PantryTile extends StatelessWidget {
                 builder: (_) => ViewIngredientScreen(ingredient: ingredient),
               ));
             },
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.edit_outlined, size: 20),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(Icons.edit_outlined, size: 20, color: Theme.of(context).colorScheme.onSecondary),
             ),
           ),
         ],

@@ -1,8 +1,7 @@
 class MealPlanEntry {
   final int? id;
   final int recipeId;
-  final DateTime date;
-  final String time;
+  final DateTime dateTime;
   
   final String? recipeName;
   final String? recipePhotoPath;
@@ -10,8 +9,7 @@ class MealPlanEntry {
   const MealPlanEntry({
     this.id,
     required this.recipeId,
-    required this.date,
-    required this.time,
+    required this.dateTime,
     this.recipeName,
     this.recipePhotoPath,
   });
@@ -20,8 +18,7 @@ class MealPlanEntry {
     return {
       'id': id,
       'recipeId': recipeId,
-      'date': date.toIso8601String(),
-      'time': time,
+      'dateTime': dateTime.toIso8601String(),
     };
   }
 
@@ -29,8 +26,7 @@ class MealPlanEntry {
     return MealPlanEntry(
       id: map['id'] as int?,
       recipeId: map['recipeId'] as int,
-      date: DateTime.parse(map['date'] as String),
-      time: map['time'] as String,
+      dateTime: DateTime.parse(map['dateTime'] as String),
 
       recipeName: map['recipeName'] as String?,
       recipePhotoPath: map['recipePhotoPath'] as String?,

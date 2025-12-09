@@ -45,6 +45,13 @@ class MyApp extends StatelessWidget {
           seedColor: const Color(0xFF7F32B5),
           primary: const Color(0xFF7F32B5),
           onPrimary: Colors.white,
+          secondary: Colors.white,
+          onSecondary: Colors.black,
+          outline: const Color(0xFFEDF1F3),
+          tertiary: const Color(0x4CD9D9D9),
+          onTertiary: Color(0xFF6C7278),
+          error: const Color(0xFFD20000),
+          onError: Colors.white,
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(

@@ -11,8 +11,7 @@ class ScheduleRepository {
       SELECT 
         s.id, 
         s.recipeId, 
-        s.date, 
-        s.time, 
+        s.dateTime, 
         r.name as recipeName, 
         r.photoPath as recipePhotoPath
       FROM schedule s
@@ -22,9 +21,9 @@ class ScheduleRepository {
     final allMeals = result.map((json) => MealPlanEntry.fromMap(json)).toList();
 
     return allMeals.where((meal) => 
-      meal.date.year == date.year && 
-      meal.date.month == date.month && 
-      meal.date.day == date.day
+      meal.dateTime.year == date.year && 
+      meal.dateTime.month == date.month && 
+      meal.dateTime.day == date.day
     ).toList();
   }
 

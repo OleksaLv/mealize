@@ -14,7 +14,7 @@ class SettingsScreen extends StatelessWidget {
     final userEmail = currentUser?.email ?? AppStrings.noEmailAvailable;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       appBar: CustomAppBar(
         title: const Text(
           AppStrings.settings,
@@ -27,7 +27,7 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.close),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSecondary,
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -46,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
               userEmail,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade700,
+                color: Theme.of(context).colorScheme.onTertiary,
               ),
             ),
             const SizedBox(height: 24),

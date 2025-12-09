@@ -20,8 +20,8 @@ class SocialAuthButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.black, 
-          side: BorderSide(color: Colors.grey.shade300, width: 1),
+          foregroundColor: Theme.of(context).colorScheme.onSecondary, 
+          side: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),

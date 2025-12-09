@@ -45,11 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     } catch (e) {
       if (mounted) {
-        //print('object');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -70,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -84,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -107,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Enter your email and password to log in',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onTertiary,
                     ),
                   ),
                   const SizedBox(height: 40),

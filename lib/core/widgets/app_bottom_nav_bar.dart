@@ -17,7 +17,7 @@ class AppBottomNavBar extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,      
       selectedItemColor: Theme.of(context).colorScheme.primary,
-      unselectedItemColor: Colors.grey.shade600,
+      unselectedItemColor: Theme.of(context).colorScheme.onTertiary,
       showSelectedLabels: true,
       showUnselectedLabels: true,
       selectedFontSize: 12.0,
@@ -26,7 +26,7 @@ class AppBottomNavBar extends StatelessWidget {
       unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
       type: BottomNavigationBarType.fixed,
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.calendar_month_outlined),

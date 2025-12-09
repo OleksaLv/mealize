@@ -24,7 +24,7 @@ class AuthNavigationText extends StatelessWidget {
         children: [
           TextSpan(
             text: text,
-            style: const TextStyle(color: Colors.black54),
+            style: TextStyle(color: Theme.of(context).colorScheme.onTertiary),
           ),
           const WidgetSpan(child: SizedBox(width: 4)),
           TextSpan(

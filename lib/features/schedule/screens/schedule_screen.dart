@@ -15,7 +15,7 @@ class ScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       appBar: CustomAppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -31,27 +31,20 @@ class ScheduleScreen extends StatelessWidget {
             const SizedBox(width: 4),
             IconButton(
               icon: const Icon(Icons.open_in_full),
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSecondary,
               onPressed: () {},
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.bug_report),
-            color: Colors.red,
-            onPressed: () {
-              FirebaseCrashlytics.instance.crash();
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.notifications_none_outlined),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSecondary,
             onPressed: () {},
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSecondary,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -66,7 +59,7 @@ class ScheduleScreen extends StatelessWidget {
       body: Column(
         children: [
           const _WeekDaySelector(),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Divider(height: 1),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -269,7 +262,7 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
               DateFormat.E('en_US').format(date),
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -288,7 +281,7 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
                   fontSize: 16,
                   color: isSelected 
                       ? Theme.of(context).colorScheme.onPrimary 
-                      : Colors.black,
+                      : Theme.of(context).colorScheme.onSecondary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
               ),
@@ -319,13 +312,12 @@ class _TimeScale extends StatelessWidget {
                 '${hour.toString().padLeft(2, '0')}:00',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: Theme.of(context).colorScheme.onTertiary,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Divider(
-                  color: Colors.grey[300],
                   thickness: 1,
                 ),
               ),

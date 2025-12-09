@@ -20,7 +20,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   late TextEditingController _notesController;
   late double _quantity;
   String _unit = 'pcs';
-  String? _photoPath; 
+  String? _photoPath;
   late TextEditingController _quantityController;
 
   @override
@@ -84,7 +84,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError),
             onPressed: () {
               if (widget.ingredient?.id != null) {
                 context.read<PantryCubit>().deleteIngredient(widget.ingredient!.id!);
@@ -104,14 +104,14 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
     final isEditing = widget.ingredient != null;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(isEditing ? 'View ingredient' : 'New ingredient', style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: false,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 0,
-        foregroundColor: Colors.black,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
         actions: [
           IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close))
         ],
@@ -136,7 +136,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                     margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey.shade200,
+                      color: Theme.of(context).colorScheme.onTertiary,
                       image: _photoPath != null
                           ? DecorationImage(image: AssetImage(_photoPath!), fit: BoxFit.cover)
                           : null,
@@ -164,7 +164,11 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).colorScheme.secondary,
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
+              ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _unit,
@@ -183,7 +187,6 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
               maxLines: 3,
               controller: _notesController,
               decoration: InputDecoration(
-                filled: true, fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
@@ -201,7 +204,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                     });
                   },
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: Theme.of(context).colorScheme.tertiary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(32, 32),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -243,7 +246,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                     });
                   },
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: Theme.of(context).colorScheme.tertiary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(32, 32),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -259,7 +262,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         minimumSize: const Size(0, 50)
                       ),

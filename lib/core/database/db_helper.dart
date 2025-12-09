@@ -38,6 +38,7 @@ class DatabaseHelper {
       CREATE TABLE ingredients (
         id $idType,
         name $textType,
+        notes TEXT,
         unit $textType,
         quantity $realType,
         photoPath TEXT,
@@ -59,8 +60,7 @@ class DatabaseHelper {
       CREATE TABLE schedule (
         id $idType,
         recipeId $integerType,
-        date $textType,
-        time $textType,
+        dateTime $textType,
         FOREIGN KEY (recipeId) REFERENCES recipes (id) ON DELETE CASCADE
       )
     ''');
@@ -118,20 +118,17 @@ class DatabaseHelper {
         
     await db.insert('schedule', MealPlanEntry(
       recipeId: 1, 
-      date: now,
-      time: '13:00'
+      dateTime: now.copyWith(hour: 13, minute: 0, second: 0, millisecond: 0)
     ).toMap());
 
     await db.insert('schedule', MealPlanEntry(
       recipeId: 2, 
-      date: now,
-      time: '14:00'
+      dateTime: now.copyWith(hour: 14, minute: 0, second: 0, millisecond: 0)
     ).toMap());
     
     await db.insert('schedule', MealPlanEntry(
       recipeId: 3, 
-      date: now,
-      time: '18:00'
+      dateTime: now.copyWith(hour: 18, minute: 0, second: 0, millisecond: 0)
     ).toMap());
   }
 }
