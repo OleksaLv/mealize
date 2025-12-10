@@ -18,7 +18,7 @@ class ViewIngredientScreen extends StatefulWidget {
 class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   late TextEditingController _titleController;
   late TextEditingController _notesController;
-  late double _quantity;
+  late int _quantity;
   String _unit = 'pcs';
   String? _photoPath;
   late TextEditingController _quantityController;
@@ -30,7 +30,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.ingredient?.name ?? '');
     _notesController = TextEditingController(text: widget.ingredient?.notes ?? '');
-    _quantity = widget.ingredient?.quantity ?? 1.0;
+    _quantity = widget.ingredient?.quantity ?? 1;
     _unit = widget.ingredient?.unit ?? 'pcs';
     _photoPath = widget.ingredient?.photoPath;
     _quantityController = TextEditingController(text: _quantity.toInt().toString());
@@ -98,7 +98,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,6 +184,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -355,7 +356,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                     onChanged: (value) {
                       final parsed = int.tryParse(value.isEmpty ? '0' : value);
                       setState(() {
-                        _quantity = (parsed ?? 0).toDouble();
+                        _quantity = (parsed ?? 0).toInt();
                       });
                     },
                     decoration: InputDecoration(

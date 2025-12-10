@@ -31,7 +31,6 @@ class DatabaseHelper {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
     const boolType = 'INTEGER NOT NULL';
-    const realType = 'REAL NOT NULL';
     const integerType = 'INTEGER NOT NULL';
 
     await db.execute('''
@@ -40,7 +39,7 @@ class DatabaseHelper {
         name $textType,
         notes TEXT,
         unit $textType,
-        quantity $realType,
+        quantity $integerType,
         photoPath TEXT,
         isCustom $boolType
       )
@@ -52,7 +51,19 @@ class DatabaseHelper {
         name $textType,
         photoPath TEXT,
         cookingTime $integerType,
-        description $textType
+        description $textType,
+        isCustom $boolType
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE recipe_ingredients (
+        id $idType,
+        recipeId $integerType,
+        ingredientId $integerType,
+        quantity $integerType,
+        FOREIGN KEY (recipeId) REFERENCES recipes (id) ON DELETE CASCADE,
+        FOREIGN KEY (ingredientId) REFERENCES ingredients (id) ON DELETE CASCADE
       )
     ''');
 
@@ -69,6 +80,7 @@ class DatabaseHelper {
   }
 
   Future<void> _seedData(Database db) async {
+    //Ingeredients
     final ingredients = [
       const Ingredient(name: 'Apricot', notes: '1 is about very-very small (like a grape)', unit: 'pcs', quantity: 3, photoPath: 'assets/images/apricot.jpg'),
       const Ingredient(name: 'Black garlic', unit: 'pcs', quantity: 3, photoPath: 'assets/images/black_garlic.jpg'),
@@ -83,6 +95,7 @@ class DatabaseHelper {
       await db.insert('ingredients', i.toMap());
     }
 
+    // Recipes
     final recipes = [
       const Recipe(
         name: 'Borsch', 
@@ -114,6 +127,35 @@ class DatabaseHelper {
       await db.insert('recipes', r.toMap());
     }
 
+    await db.insert('recipe_ingredients', {
+      'recipeId': 1,
+      'ingredientId': 7,
+      'quantity': 5.0,
+    });
+    
+    await db.insert('recipe_ingredients', {
+      'recipeId': 1,
+      'ingredientId': 3,
+      'quantity': 2.0,
+    });
+
+    await db.insert('recipe_ingredients', {
+      'recipeId': 3,
+      'ingredientId': 5,
+      'quantity': 2.0,
+    });
+
+     await db.insert('recipe_ingredients', {
+      'recipeId': 3,
+      'ingredientId': 6,
+      'quantity': 100.0,
+    });
+
+    for (var r in recipes) {
+      await db.insert('recipes', r.toMap());
+    }
+
+    // Meal Plan Entries
     final now = DateTime.now();
         
     await db.insert('schedule', MealPlanEntry(

@@ -3,7 +3,7 @@ class Ingredient {
   final String name;
   final String? notes;
   final String unit;
-  final double quantity;
+  final int quantity;
   final String? photoPath;
   final bool isCustom;
 
@@ -12,7 +12,7 @@ class Ingredient {
     required this.name,
     required this.unit,
     this.notes,
-    this.quantity = 0.0,
+    this.quantity = 0,
     this.photoPath,
     this.isCustom = false,
   });
@@ -35,7 +35,7 @@ class Ingredient {
       name: map['name'] as String,
       notes: map['notes'] as String?,
       unit: map['unit'] as String,
-      quantity: (map['quantity'] as num).toDouble(),
+      quantity: (map['quantity'] as num).toInt(),
       photoPath: map['photoPath'] as String?,
       isCustom: (map['isCustom'] as int) == 1,
     );
@@ -46,7 +46,7 @@ class Ingredient {
     String? name,
     String? notes,
     String? unit,
-    double? quantity,
+    int? quantity,
     String? photoPath,
     bool? isCustom,
   }) {

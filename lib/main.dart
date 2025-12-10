@@ -5,6 +5,8 @@ import 'firebase_options.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'features/pantry/data/pantry_repository.dart';
 import 'features/pantry/bloc/pantry_cubit.dart';
+import 'features/recipes/data/recipes_repository.dart';
+import 'features/recipes/bloc/recipes_cubit.dart';
 import 'core/constants/app_strings.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -31,11 +33,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pantryRepository = PantryRepository();
+    final recipesRepository = RecipesRepository();
 
     return MultiBlocProvider(
       providers: [
         BlocProvider<PantryCubit>(
           create: (context) => PantryCubit(pantryRepository),
+        ),
+        BlocProvider<RecipesCubit>(
+          create: (context) => RecipesCubit(recipesRepository),
         ),
       ],
       child: MaterialApp(

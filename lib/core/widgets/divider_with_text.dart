@@ -13,7 +13,7 @@ class DividerWithText extends StatelessWidget {
     // Widget divider to avoid code duplication
     final divider = Expanded(
       child: Divider(
-        color: Theme.of(context).colorScheme.onTertiary,
+        color: Theme.of(context).colorScheme.tertiary,
         thickness: 1,
       ),
     );

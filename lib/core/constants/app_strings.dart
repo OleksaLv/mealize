@@ -32,6 +32,9 @@ abstract class AppStrings {
   // PantryScreen
   static const String pantry = 'Pantry';
 
+  // RecipesScreen
+  static const String recipes = 'Recipes';
+
   // SettingsScreen
   static const String settings = 'Settings';
   static const String noEmailAvailable = 'No email available';

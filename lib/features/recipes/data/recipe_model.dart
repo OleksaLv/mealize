@@ -4,6 +4,7 @@ class Recipe {
   final String? photoPath;
   final int cookingTime;
   final String description;
+  final bool isCustom;
 
   const Recipe({
     this.id,
@@ -11,6 +12,7 @@ class Recipe {
     this.photoPath,
     required this.cookingTime,
     required this.description,
+    this.isCustom = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class Recipe {
       'photoPath': photoPath,
       'cookingTime': cookingTime,
       'description': description,
+      'isCustom': isCustom ? 1 : 0,
     };
   }
 
@@ -30,6 +33,7 @@ class Recipe {
       photoPath: map['photoPath'] as String?,
       cookingTime: map['cookingTime'] as int,
       description: map['description'] as String,
+      isCustom: (map['isCustom'] as int) == 1,
     );
   }
 }
