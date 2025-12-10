@@ -80,15 +80,17 @@ class DatabaseHelper {
   }
 
   Future<void> _seedData(Database db) async {
-    //Ingeredients
+    // Ingredients
     final ingredients = [
-      const Ingredient(name: 'Apricot', notes: '1 is about very-very small (like a grape)', unit: 'pcs', quantity: 3, photoPath: 'assets/images/apricot.jpg'),
-      const Ingredient(name: 'Black garlic', unit: 'pcs', quantity: 3, photoPath: 'assets/images/black_garlic.jpg'),
-      const Ingredient(name: 'Black pepper', unit: 'g', quantity: 15, photoPath: 'assets/images/black_pepper.jpg'),
-      const Ingredient(name: 'Cep', unit: 'g', quantity: 200, photoPath: 'assets/images/cep.jpeg'),
-      const Ingredient(name: 'Egg', unit: 'pcs', quantity: 11, photoPath: 'assets/images/egg.jpg'),
-      const Ingredient(name: 'Milk', unit: 'ml', quantity: 250, photoPath: 'assets/images/milk.jpg'),
-      const Ingredient(name: 'Salt', unit: 'g', quantity: 400, photoPath: 'assets/images/salt.jpg'),
+      const Ingredient(name: 'Beef', unit: 'g', quantity: 500, photoPath: 'assets/images/beef.jpg'), // id 1
+      const Ingredient(name: 'Beet', unit: 'g', quantity: 375, photoPath: 'assets/images/beet.jpg'), // id 2
+      const Ingredient(name: 'Cabbage', unit: 'g', quantity: 550, photoPath: 'assets/images/cabbage.jpg'), // id 3
+      const Ingredient(name: 'Carrot', unit: 'g', quantity: 100, photoPath: 'assets/images/carrot.jpg'), // id 4
+      const Ingredient(name: 'Onion', unit: 'g', quantity: 250, photoPath: 'assets/images/onion.jpg'), // id 5
+      const Ingredient(name: 'Egg', unit: 'pcs', quantity: 11, photoPath: 'assets/images/egg.jpg'), // id 6
+      const Ingredient(name: 'Milk', unit: 'ml', quantity: 250, photoPath: 'assets/images/milk.jpg'), // id 7
+      const Ingredient(name: 'Salt', unit: 'g', quantity: 400, photoPath: 'assets/images/salt.jpg'), // id 8
+      const Ingredient(name: 'Black pepper', unit: 'g', quantity: 15, photoPath: 'assets/images/black_pepper.jpg'), // id 9
     ];
 
     for (var i in ingredients) {
@@ -101,7 +103,7 @@ class DatabaseHelper {
         name: 'Borsch', 
         photoPath: 'assets/images/borsch.jpg', 
         cookingTime: 45, 
-        description: 'Traditional Ukrainian soup...'
+        description: '1. Place meat in a large pot and cover with 3 liters of cold water...\n2. Sauté chopped onions and carrots...'
       ),
       const Recipe(
         name: 'Stuffed cabbage rolls', 
@@ -127,33 +129,35 @@ class DatabaseHelper {
       await db.insert('recipes', r.toMap());
     }
 
-    await db.insert('recipe_ingredients', {
-      'recipeId': 1,
-      'ingredientId': 7,
-      'quantity': 5.0,
-    });
-    
-    await db.insert('recipe_ingredients', {
-      'recipeId': 1,
-      'ingredientId': 3,
-      'quantity': 2.0,
-    });
+    // Linking ingredients to Borsch (Recipe ID 1)
+    final borschIngredients = [
+      {'id': 1, 'qty': 500}, // Beef
+      {'id': 2, 'qty': 375}, // Beet
+      {'id': 3, 'qty': 550}, // Cabbage
+      {'id': 4, 'qty': 100}, // Carrot
+      {'id': 5, 'qty': 250}, // Onion
+    ];
 
+    for (var item in borschIngredients) {
+      await db.insert('recipe_ingredients', {
+        'recipeId': 1,
+        'ingredientId': item['id'],
+        'quantity': item['qty'],
+      });
+    }
+
+    // Linking ingredients to Potato pancakes (Recipe ID 3)
     await db.insert('recipe_ingredients', {
       'recipeId': 3,
-      'ingredientId': 5,
-      'quantity': 2.0,
+      'ingredientId': 6, // Egg
+      'quantity': 2,
     });
-
      await db.insert('recipe_ingredients', {
       'recipeId': 3,
-      'ingredientId': 6,
-      'quantity': 100.0,
+      'ingredientId': 7, // Milk
+      'quantity': 100,
     });
 
-    for (var r in recipes) {
-      await db.insert('recipes', r.toMap());
-    }
 
     // Meal Plan Entries
     final now = DateTime.now();

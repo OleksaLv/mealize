@@ -7,7 +7,9 @@ import '../../../../core/constants/app_strings.dart';
 import '../bloc/recipes_cubit.dart';
 import '../bloc/recipes_state.dart';
 import '../data/recipe_model.dart';
+import '../data/recipes_repository.dart';
 import 'view_dish_screen.dart';
+import 'filter_recipes_screen.dart';
 import '../../schedule/screens/schedule_screen.dart';
 import '../../pantry/screens/pantry_screen.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -24,10 +26,57 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _filterStandard = true;
   bool _filterCustom = true;
 
+  FilterResult? _advancedFilters;
+  List<int> _availableRecipeIds = [];
+  List<int> _ingredientFilteredIds = [];
+
   @override
   void initState() {
     super.initState();
     context.read<RecipesCubit>().loadRecipes();
+  }
+
+  void _openFilters() async {
+    final result = await showModalBottomSheet<FilterResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FilterRecipesScreen(currentFilters: _advancedFilters),
+    );
+
+    if (result != null) {
+      if (result.selectedIngredients.isNotEmpty) {
+        final repo = RecipesRepository();
+        final ids = await repo.getRecipeIdsByIngredients(result.selectedIngredients);
+        if (mounted) {
+           setState(() {
+             _ingredientFilteredIds = ids;
+           });
+        }
+      } else {
+        setState(() {
+          _ingredientFilteredIds = [];
+        });
+      }
+
+      setState(() {
+        _advancedFilters = result;
+      });
+
+      if (result.onlyFromPantry) {
+        _checkPantryAvailability();
+      }
+    }
+  }
+
+  Future<void> _checkPantryAvailability() async {
+    final repo = RecipesRepository(); 
+    final ids = await repo.getAvailableRecipeIds();
+    if (mounted) {
+      setState(() {
+        _availableRecipeIds = ids;
+      });
+    }
   }
 
   @override
@@ -69,8 +118,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   child: SizedBox(
                     height: 36,
                     child: ElevatedButton(
-                      onPressed: () {
-                      },
+                      onPressed: _openFilters,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -126,8 +174,30 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     
                     final matchesStandard = _filterStandard && !item.isCustom;
                     final matchesCustom = _filterCustom && item.isCustom;
+                    bool topBarMatch = matchesSearch && (matchesStandard || matchesCustom);
                     
-                    return matchesSearch && (matchesStandard || matchesCustom);
+                    if (!topBarMatch) return false;
+
+                    if (_advancedFilters != null) {
+                      if (item.cookingTime < _advancedFilters!.cookingTimeRange.start || 
+                          item.cookingTime > _advancedFilters!.cookingTimeRange.end) {
+                        return false;
+                      }
+
+                      if (_advancedFilters!.onlyFromPantry) {
+                         if (!_availableRecipeIds.contains(item.id)) {
+                           return false;
+                         }
+                      }
+                      
+                      if (_advancedFilters!.selectedIngredients.isNotEmpty) {
+                        if (!_ingredientFilteredIds.contains(item.id)) {
+                          return false;
+                        }
+                      }
+                    }
+
+                    return true;
                   }).toList();
 
                   if (filteredList.isEmpty) {

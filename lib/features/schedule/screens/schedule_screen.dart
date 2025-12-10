@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:mealize/core/constants/app_strings.dart';
 import 'package:mealize/features/pantry/screens/pantry_screen.dart';
 import 'package:mealize/features/recipes/screens/recipes_screen.dart';

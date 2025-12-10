@@ -23,7 +23,8 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
   String? _photoPath;
   late TextEditingController _cookingTimeController;
   
-  late List<Map<String, dynamic>> _ingredientsList;
+  // Ініціалізуємо порожнім списком, дані підтягнуться з БД
+  List<Map<String, dynamic>> _ingredientsList = [];
 
   bool get _isLocked => widget.recipe != null && !widget.recipe!.isCustom;
 
@@ -35,18 +36,6 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
     _cookingTime = widget.recipe?.cookingTime ?? 1;
     _photoPath = widget.recipe?.photoPath;
     _cookingTimeController = TextEditingController(text: _cookingTime.toInt().toString());
-
-    if (widget.recipe?.name == 'Borsch' || widget.recipe?.name == 'Tacos') {
-       _ingredientsList = [
-         {'name': 'beef', 'quantity': 500.0, 'unit': 'g', 'image': 'assets/images/beef.jpg'},
-         {'name': 'beet', 'quantity': 375.0, 'unit': 'g', 'image': 'assets/images/beet.jpg'},
-         {'name': 'cabbage', 'quantity': 550.0, 'unit': 'g', 'image': 'assets/images/cabbage.jpg'},
-         {'name': 'carrot', 'quantity': 100.0, 'unit': 'g', 'image': 'assets/images/carrot.jpg'},
-         {'name': 'onion', 'quantity': 250.0, 'unit': 'g', 'image': 'assets/images/onion.jpg'},
-       ];
-    } else {
-      _ingredientsList = [];
-    }
 
     if (widget.recipe != null) {
       _loadIngredients();
@@ -321,63 +310,80 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.remove, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _cookingTime = (_cookingTime > 0) ? _cookingTime - 1 : 0;
-                      _cookingTimeController.text = _cookingTime.toInt().toString();
-                    });
-                  },
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.tertiary,
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(32, 32),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                if (!_isLocked) ...[
+                  IconButton(
+                    icon: const Icon(Icons.remove, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _cookingTime = (_cookingTime > 0) ? _cookingTime - 1 : 0;
+                        _cookingTimeController.text = _cookingTime.toInt().toString();
+                      });
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.tertiary,
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
+                  const SizedBox(width: 8),
+                ],
+                
                 SizedBox(
                   width: 80,
                   height: 32,
-                  child: TextFormField(
-                    controller: _cookingTimeController,
-                    textAlign: TextAlign.center,
-                    textAlignVertical: TextAlignVertical.center,
-                    keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onChanged: (value) {
-                      final parsed = int.tryParse(value.isEmpty ? '0' : value);
+                  child: _isLocked
+                      ? Center(
+                          child: Text(
+                            '$_cookingTime',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        )
+                      : TextFormField(
+                          controller: _cookingTimeController,
+                          textAlign: TextAlign.center,
+                          textAlignVertical: TextAlignVertical.center,
+                          keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          onChanged: (value) {
+                            final parsed = int.tryParse(value.isEmpty ? '0' : value);
+                            setState(() {
+                              _cookingTime = (parsed ?? 0).toInt();
+                            });
+                          },
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                ),
+
+                if (!_isLocked) ...[
+                  const SizedBox(width: 8), // Відступ, якщо є кнопки
+                  IconButton(
+                    icon: const Icon(Icons.add, size: 20),
+                    onPressed: () {
                       setState(() {
-                        _cookingTime = (parsed ?? 0).toInt();
+                        _cookingTime += 1;
+                        _cookingTimeController.text = _cookingTime.toInt().toString();
                       });
                     },
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.tertiary,
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _cookingTime += 1;
-                      _cookingTimeController.text = _cookingTime.toInt().toString();
-                    });
-                  },
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.tertiary,
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(32, 32),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
+                ],
               ],
             ),
 
