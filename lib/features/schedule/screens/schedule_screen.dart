@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:mealize/core/constants/app_strings.dart';
 import 'package:mealize/features/pantry/screens/pantry_screen.dart';
@@ -7,9 +8,24 @@ import 'package:mealize/features/settings/screens/settings_screen.dart';
 import 'package:mealize/core/widgets/custom_app_bar.dart';
 import 'package:mealize/core/widgets/app_bottom_nav_bar.dart';
 import 'package:mealize/core/widgets/custom_fab.dart';
+import '../bloc/schedule_cubit.dart';
+import '../bloc/schedule_state.dart';
+import '../data/meal_plan_entry_model.dart';
 
-class ScheduleScreen extends StatelessWidget {
+class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
+
+  @override
+  State<ScheduleScreen> createState() => _ScheduleScreenState();
+}
+
+class _ScheduleScreenState extends State<ScheduleScreen> {
+  
+  @override
+  void initState() {
+    super.initState();
+    context.read<ScheduleCubit>().loadSchedule(DateTime.now());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,39 +71,54 @@ class ScheduleScreen extends StatelessWidget {
           const SizedBox(width: 12),
         ],
       ),
-      body: Column(
-        children: [
-          const _WeekDaySelector(),
-          Divider(height: 1),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Stack(
-                children: [
-                  const _TimeScale(),
-                  _MealCard(
-                    mealName: 'Borsch',
-                    imagePath: 'assets/images/borsch.jpg',
-                    onTap: () {},
-                    topOffset: 720,
-                  ),
-                  _MealCard(
-                    mealName: 'Stuffed cabbage rolls',
-                    imagePath: 'assets/images/cabbage_rolls.jpg',
-                    onTap: () {},
-                    topOffset: 1040,
-                  ),
-                  _MealCard(
-                    mealName: 'Potato pancakes',
-                    imagePath: 'assets/images/potato_pancakes.jpg',
-                    onTap: () {},
-                    topOffset: 1440,
-                  ),
-                ],
+      body: BlocBuilder<ScheduleCubit, ScheduleState>(
+        builder: (context, state) {
+          DateTime selectedDate = DateTime.now();
+          List<MealPlanEntry> meals = [];
+          bool isLoading = false;
+
+          if (state is ScheduleLoaded) {
+            selectedDate = state.selectedDate;
+            meals = state.meals;
+          } else if (state is ScheduleLoading) {
+            isLoading = true;
+          }
+
+          return Column(
+            children: [
+              _WeekDaySelector(
+                selectedDate: selectedDate,
+                onDateSelected: (date) {
+                  context.read<ScheduleCubit>().loadSchedule(date);
+                },
               ),
-            ),
-          ),
-        ],
+              const Divider(height: 1),
+              Expanded(
+                child: isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Stack(
+                    children: [
+                      const _TimeScale(),
+                      ...meals.map((meal) {
+                        final minutes = meal.dateTime.hour * 60 + meal.dateTime.minute;
+                        final topOffset = minutes * (_TimeScale.hourHeight / 60.0);
+                        
+                        return _MealCard(
+                          mealEntry: meal,
+                          topOffset: topOffset,
+                          onTap: () {
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 0,
@@ -112,7 +143,10 @@ class ScheduleScreen extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: const CustomFAB(),
+      floatingActionButton: CustomFAB(
+        onPressed: () {
+        },
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
@@ -121,105 +155,97 @@ class ScheduleScreen extends StatelessWidget {
 // Widgets for Time Scale and Week Day Selector
 
 class _WeekDaySelector extends StatefulWidget {
-  const _WeekDaySelector();
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+
+  const _WeekDaySelector({
+    required this.selectedDate,
+    required this.onDateSelected,
+  });
 
   @override
   State<_WeekDaySelector> createState() => _WeekDaySelectorState();
 }
 
 class _WeekDaySelectorState extends State<_WeekDaySelector> {
-  DateTime _selectedDate = DateTime.now();
   final ScrollController _scrollController = ScrollController();
   final List<DateTime?> _daysInMonth = [];
-
   static const double _dayItemWidth = 56.0;
 
   @override
   void initState() {
     super.initState();
     _populateDays();
-
     // Scroll to the current week after the layout is built
     WidgetsBinding.instance.addPostFrameCallback((_)  {
-      _scrollToCurrentWeek();
+      _scrollToDate(widget.selectedDate);
     });
+  }
+  
+  @override
+  void didUpdateWidget(_WeekDaySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedDate != widget.selectedDate) {
+      _scrollToDate(widget.selectedDate);
+    }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose(); // dispose controllers
+    _scrollController.dispose(); 
     super.dispose();
   }
 
-  // Populates the _daysInMonth list with all days to be displayed,
-  // including null fillers for empty slots in the first and last weeks.
   void _populateDays() {
     final now = DateTime.now();
+    // Показуємо поточний місяць
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
 
-    // Find the Monday of the first week to display
+    // Додаємо дні з попереднього місяця, щоб почати з понеділка
     int daysToSubtract = firstDayOfMonth.weekday - DateTime.monday;
     DateTime displayStartDate =
         firstDayOfMonth.subtract(Duration(days: daysToSubtract));
 
-    // Find the Sunday of the last week to display.
+    // Додаємо дні з наступного місяця, щоб закінчити неділею
     int daysToAdd = DateTime.sunday - lastDayOfMonth.weekday;
     DateTime displayEndDate =
         lastDayOfMonth.add(Duration(days: daysToAdd));
 
-    // Loop from the start Monday to the end Sunday
     for (DateTime date = displayStartDate;
         date.isBefore(displayEndDate.add(const Duration(days: 1)));
         date = DateTime(date.year, date.month, date.day + 1)) {
-      if (date.month != now.month) {
-        _daysInMonth.add(null);
-      } else {
-        _daysInMonth.add(date);
+       // Додаємо всі дні підряд для простоти скролу
+       _daysInMonth.add(date);
+    }
+  }
+
+  void _scrollToDate(DateTime date) {
+    if (_daysInMonth.isEmpty) return;
+    
+    // Знаходимо індекс понеділка тижня для цієї дати
+    final mondayOfSelectedWeek = date.subtract(Duration(days: date.weekday - 1));
+    
+    int index = -1;
+    for(int i=0; i<_daysInMonth.length; i++) {
+      if (_daysInMonth[i] != null && _isSameDay(_daysInMonth[i]!, mondayOfSelectedWeek)) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index != -1) {
+      final double offset = index * _dayItemWidth;
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          offset,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
       }
     }
   }
 
-  // Calculates and animates the scroll position to the Monday
-  // of the currently selected week
-  void _scrollToCurrentWeek() {
-    final now = DateTime.now();
-    // Find Monday of the current week
-    final mondayOfCurrentWeek =
-        now.subtract(Duration(days: now.weekday - DateTime.monday));
-
-    // Find the Monday of the first displayed week
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    int daysToSubtract = firstDayOfMonth.weekday - DateTime.monday;
-    DateTime displayStartDate =
-        firstDayOfMonth.subtract(Duration(days: daysToSubtract));
-
-    // Calculate the index of the current Monday in the whole list
-    if (mondayOfCurrentWeek.isAfter(displayStartDate) ||
-        mondayOfCurrentWeek.isAtSameMomentAs(displayStartDate)) {
-      final int index =
-          mondayOfCurrentWeek.difference(displayStartDate).inDays;
-
-      // Calculate the scroll offset
-      final double offset = index * _dayItemWidth;
-
-      // Animate the scroll
-      _scrollController.animateTo(
-        offset,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  // Handles tap events on a date.
-  void _onDateSelected(DateTime date) {
-    setState(() {
-      _selectedDate = date;
-    });
-  }
-
-  // Helper to check if two DateTime objects represent the same day.
   bool _isSameDay(DateTime d1, DateTime d2) {
     return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
@@ -240,52 +266,54 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
     );
   }
 
-  // Builds a single day item
   Widget _buildDayItem(BuildContext context, DateTime? date) {
-    // If date is null, place an empty spacer
     if (date == null) {
       return const SizedBox(width: _dayItemWidth);
     }
 
-    final isSelected = _isSameDay(date, _selectedDate);
+    final isSelected = _isSameDay(date, widget.selectedDate);
+    // Робимо дні інших місяців трохи прозорими
+    final isCurrentMonth = date.month == DateTime.now().month; 
 
     return InkWell(
-      onTap: () => _onDateSelected(date),
-      borderRadius:
-          BorderRadius.circular(20.0),
-      child: SizedBox(
-        width: _dayItemWidth,
-        child: Column(
-          children: [
-            Text(
-              DateFormat.E('en_US').format(date),
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                DateFormat.d().format(date),
+      onTap: () => widget.onDateSelected(date),
+      borderRadius: BorderRadius.circular(20.0),
+      child: Opacity(
+        opacity: isCurrentMonth ? 1.0 : 0.3,
+        child: SizedBox(
+          width: _dayItemWidth,
+          child: Column(
+            children: [
+              Text(
+                DateFormat.E('en_US').format(date),
                 style: TextStyle(
-                  fontSize: 16,
-                  color: isSelected 
-                      ? Theme.of(context).colorScheme.onPrimary 
-                      : Theme.of(context).colorScheme.onSecondary,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  DateFormat.d().format(date),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isSelected 
+                        ? Theme.of(context).colorScheme.onPrimary 
+                        : Theme.of(context).colorScheme.onSecondary,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -315,7 +343,7 @@ class _TimeScale extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
+              const Expanded(
                 child: Divider(
                   thickness: 1,
                 ),
@@ -330,22 +358,19 @@ class _TimeScale extends StatelessWidget {
 
 class _MealCard extends StatelessWidget {
   const _MealCard({
-    required this.mealName,
-    required this.imagePath,
-    this.onTap,
+    required this.mealEntry,
     required this.topOffset,
+    this.onTap,
   });
 
-  final String mealName;
-  final String imagePath;  
-  final VoidCallback? onTap;
+  final MealPlanEntry mealEntry;
   final double topOffset;
-  final double slotHeight = _TimeScale.hourHeight;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cardHeight = slotHeight - 16;
+    const double cardHeight = _TimeScale.hourHeight - 16; 
 
     return Positioned(
       top: topOffset,
@@ -370,24 +395,30 @@ class _MealCard extends StatelessWidget {
                   height: 56,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10.0),
-                    child: imagePath.startsWith('http')
-                        ? Image.network(imagePath, fit: BoxFit.cover)
-                        : Image.asset(imagePath, fit: BoxFit.cover),
+                    child: (mealEntry.recipePhotoPath != null)
+                        ? Image.asset(mealEntry.recipePhotoPath!, fit: BoxFit.cover)
+                        : Container(color: Colors.white, child: const Icon(Icons.fastfood)),
                   ),
                 ),
                 
                 const SizedBox(width: 16),
 
                 Expanded(
-                  child: Text(
-                    mealName,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        mealEntry.recipeName ?? 'Unknown Meal',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],

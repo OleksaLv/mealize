@@ -7,6 +7,8 @@ import 'features/pantry/data/pantry_repository.dart';
 import 'features/pantry/bloc/pantry_cubit.dart';
 import 'features/recipes/data/recipes_repository.dart';
 import 'features/recipes/bloc/recipes_cubit.dart';
+import 'features/schedule/data/schedule_repository.dart';
+import 'features/schedule/bloc/schedule_cubit.dart';
 import 'core/constants/app_strings.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -34,6 +36,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final pantryRepository = PantryRepository();
     final recipesRepository = RecipesRepository();
+    final scheduleRepository = ScheduleRepository();
 
     return MultiBlocProvider(
       providers: [
@@ -42,6 +45,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<RecipesCubit>(
           create: (context) => RecipesCubit(recipesRepository),
+        ),
+        BlocProvider<ScheduleCubit>(
+          create: (context) => ScheduleCubit(scheduleRepository),
         ),
       ],
       child: MaterialApp(
