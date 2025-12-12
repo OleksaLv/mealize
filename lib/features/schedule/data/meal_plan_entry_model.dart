@@ -41,6 +41,7 @@ class MealPlanEntry {
 
   factory MealPlanEntry.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    
     DateTime date = DateTime.now();
     if (data['date'] is Timestamp) {
       date = (data['date'] as Timestamp).toDate();

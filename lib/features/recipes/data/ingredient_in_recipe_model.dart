@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class IngredientInRecipe {
@@ -45,9 +46,10 @@ class IngredientInRecipe {
     );
   }
 
-  factory IngredientInRecipe.fromFirestore(Map<String, dynamic> data) {
+  factory IngredientInRecipe.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return IngredientInRecipe(
-      id: const Uuid().v4(), 
+      id: doc.id,
       recipeId: '',
       ingredientId: data['ingredientId'] ?? '',
       quantity: (data['quantity'] as num).toInt(),

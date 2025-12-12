@@ -44,7 +44,6 @@ class Recipe {
     );
   }
 
-
   factory Recipe.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Recipe(
