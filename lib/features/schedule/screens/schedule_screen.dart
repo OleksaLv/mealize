@@ -12,6 +12,7 @@ import '../bloc/schedule_cubit.dart';
 import '../bloc/schedule_state.dart';
 import '../data/meal_plan_entry_model.dart';
 import 'calendar_screen.dart';
+import 'view_meal_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -116,6 +117,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           mealEntry: meal,
                           topOffset: topOffset,
                           onTap: () {
+                            // Навігація на редагування
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ViewMealScreen(entry: meal),
+                              ),
+                            );
                           },
                         );
                       }),
@@ -145,6 +152,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
           floatingActionButton: CustomFAB(
             onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ViewMealScreen(
+                    initialDate: context.read<ScheduleCubit>().state is ScheduleLoaded 
+                        ? (context.read<ScheduleCubit>().state as ScheduleLoaded).selectedDate 
+                        : DateTime.now(),
+                  ),
+                ),
+              );
             },
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

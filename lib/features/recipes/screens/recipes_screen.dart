@@ -15,7 +15,9 @@ import '../../pantry/screens/pantry_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
-  const RecipesScreen({super.key});
+  final bool isSelectionMode;
+
+  const RecipesScreen({super.key, this.isSelectionMode = false});
 
   @override
   State<RecipesScreen> createState() => _RecipesScreenState();
@@ -84,6 +86,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
+        leading: widget.isSelectionMode 
+            ? IconButton(
+                icon: const Icon(Icons.close), 
+                onPressed: () => Navigator.of(context).pop()
+              ) 
+            : null,
         title: const Text(
           AppStrings.recipes, 
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)
@@ -214,7 +222,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     ),
                     itemCount: filteredList.length,
                     itemBuilder: (context, index) {
-                      return _RecipeCard(recipe: filteredList[index]);
+                      return _RecipeCard(
+                        recipe: filteredList[index],
+                        isSelectionMode: widget.isSelectionMode,
+                      );
                     },
                   );
                 } else if (state is RecipesError) {
@@ -226,7 +237,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: AppBottomNavBar(
+      bottomNavigationBar: widget.isSelectionMode ? null : AppBottomNavBar(
         currentIndex: 2,
         onTap: (index) {
           switch (index) {
@@ -241,7 +252,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           }
         },
       ),
-      floatingActionButton: CustomFAB(
+      floatingActionButton: widget.isSelectionMode ? null : CustomFAB(
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => const ViewDishScreen(),
@@ -277,16 +288,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
 class _RecipeCard extends StatelessWidget {
   final Recipe recipe;
+  final bool isSelectionMode;
 
-  const _RecipeCard({required this.recipe});
+  const _RecipeCard({required this.recipe, this.isSelectionMode = false});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => ViewDishScreen(recipe: recipe),
-        ));
+        if (isSelectionMode) {
+          Navigator.of(context).pop(recipe);
+        } else {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => ViewDishScreen(recipe: recipe),
+          ));
+        }
       },
       child: Container(
         decoration: BoxDecoration(

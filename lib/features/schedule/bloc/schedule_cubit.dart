@@ -37,6 +37,24 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     }
   }
 
+  Future<void> addMeal(MealPlanEntry meal) async {
+    try {
+      await _repository.addMeal(meal);
+      _refreshData();
+    } catch (e) {
+      emit(ScheduleError('Failed to add meal: $e'));
+    }
+  }
+
+  Future<void> updateMeal(MealPlanEntry meal) async {
+    try {
+      await _repository.updateMeal(meal);
+      _refreshData();
+    } catch (e) {
+      emit(ScheduleError('Failed to update meal: $e'));
+    }
+  }
+
   Future<void> deleteMeal(int id) async {
     try {
       await _repository.deleteMeal(id);
@@ -68,5 +86,14 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       meal.dateTime.month == date.month && 
       meal.dateTime.day == date.day
     ).toList();
+  }
+
+  Future<void> addMealFromUI(MealPlanEntry meal) async {
+    try {
+      await _repository.addMeal(meal);
+      _refreshData();
+    } catch (e) {
+      emit(ScheduleError('Failed to add meal: $e'));
+    }
   }
 }
