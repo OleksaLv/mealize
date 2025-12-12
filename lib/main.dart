@@ -9,6 +9,8 @@ import 'features/recipes/data/recipes_repository.dart';
 import 'features/recipes/bloc/recipes_cubit.dart';
 import 'features/schedule/data/schedule_repository.dart';
 import 'features/schedule/bloc/schedule_cubit.dart';
+import 'features/settings/data/settings_repository.dart';
+import 'features/settings/bloc/settings_cubit.dart';
 import 'core/constants/app_strings.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -40,6 +42,7 @@ class _MyAppState extends State<MyApp> {
   final pantryRepository = PantryRepository();
   final recipesRepository = RecipesRepository();
   final scheduleRepository = ScheduleRepository();
+  final settingsRepository = SettingsRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +56,9 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider<ScheduleCubit>(
           create: (context) => ScheduleCubit(scheduleRepository),
+        ),
+        BlocProvider<SettingsCubit>(
+          create: (context) => SettingsCubit(settingsRepository)..loadSettings(),
         ),
       ],
       child: MaterialApp(

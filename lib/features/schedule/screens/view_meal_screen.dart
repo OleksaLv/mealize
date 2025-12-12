@@ -21,9 +21,6 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   Recipe? _selectedRecipe;
-  
-  String? _initialRecipeName;
-  String? _initialRecipePhoto;
 
   bool get _isEditing => widget.entry != null;
 
@@ -33,8 +30,6 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
     if (_isEditing) {
       _selectedDate = widget.entry!.dateTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.entry!.dateTime);
-      _initialRecipeName = widget.entry!.recipeName;
-      _initialRecipePhoto = widget.entry!.recipePhotoPath;
 
       _selectedRecipe = Recipe(
         id: widget.entry!.recipeId,

@@ -572,7 +572,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   if (!_isLocked)
                     SizedBox(
