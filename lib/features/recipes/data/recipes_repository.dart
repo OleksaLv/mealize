@@ -25,7 +25,7 @@ class RecipesRepository {
     return null;
   }
 
-  Future<List<IngredientInRecipe>> getIngredientsForRecipe(int recipeId) async {
+  Future<List<IngredientInRecipe>> getIngredientsForRecipe(String recipeId) async {
     final db = await _dbHelper.database;
     
     final result = await db.rawQuery('''
@@ -89,7 +89,7 @@ class RecipesRepository {
     });
   }
 
-  Future<void> deleteRecipe(int id) async {
+  Future<void> deleteRecipe(String id) async {
     final db = await _dbHelper.database;
     
     await db.delete(

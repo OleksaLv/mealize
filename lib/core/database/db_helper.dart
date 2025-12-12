@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../../features/pantry/data/ingredient_model.dart';
 import '../../features/recipes/data/recipe_model.dart';
+import '../../features/recipes/data/ingredient_in_recipe_model.dart';
 import '../../features/schedule/data/meal_plan_entry_model.dart';
 
 class DatabaseHelper {
@@ -28,19 +29,21 @@ class DatabaseHelper {
   }
 
   Future<void> _createDB(Database db, int version) async {
-    const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    const idType = 'TEXT PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
     const boolType = 'INTEGER NOT NULL';
     const integerType = 'INTEGER NOT NULL';
+    const textNullable = 'TEXT';
 
     await db.execute('''
       CREATE TABLE ingredients (
         id $idType,
         name $textType,
-        notes TEXT,
+        notes $textNullable,
         unit $textType,
         quantity $integerType,
-        photoPath TEXT,
+        photoPath $textNullable,
+        photoUrl $textNullable,
         isCustom $boolType
       )
     ''');
@@ -49,9 +52,10 @@ class DatabaseHelper {
       CREATE TABLE recipes (
         id $idType,
         name $textType,
-        photoPath TEXT,
+        photoPath $textNullable,
+        photoUrl $textNullable,
         cookingTime $integerType,
-        description $textType,
+        steps $textType,
         isCustom $boolType
       )
     ''');
@@ -59,9 +63,10 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE recipe_ingredients (
         id $idType,
-        recipeId $integerType,
-        ingredientId $integerType,
+        recipeId $textType,
+        ingredientId $textType,
         quantity $integerType,
+        ingredientPhotoUrl $textNullable, 
         FOREIGN KEY (recipeId) REFERENCES recipes (id) ON DELETE CASCADE,
         FOREIGN KEY (ingredientId) REFERENCES ingredients (id) ON DELETE CASCADE
       )
@@ -70,8 +75,9 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE schedule (
         id $idType,
-        recipeId $integerType,
+        recipeId $textType,
         dateTime $textType,
+        recipePhotoUrl $textNullable,
         FOREIGN KEY (recipeId) REFERENCES recipes (id) ON DELETE CASCADE
       )
     ''');
@@ -80,101 +86,98 @@ class DatabaseHelper {
   }
 
   Future<void> _seedData(Database db) async {
-    // Ingredients
-    final ingredients = [
-      const Ingredient(name: 'Beef', unit: 'g', quantity: 500, photoPath: 'assets/images/beef.jpg'), // id 1
-      const Ingredient(name: 'Beet', unit: 'g', quantity: 375, photoPath: 'assets/images/beet.jpg'), // id 2
-      const Ingredient(name: 'Cabbage', unit: 'g', quantity: 550, photoPath: 'assets/images/cabbage.jpg'), // id 3
-      const Ingredient(name: 'Carrot', unit: 'g', quantity: 100, photoPath: 'assets/images/carrot.jpg'), // id 4
-      const Ingredient(name: 'Onion', unit: 'g', quantity: 250, photoPath: 'assets/images/onion.jpg'), // id 5
-      const Ingredient(name: 'Egg', unit: 'pcs', quantity: 11, photoPath: 'assets/images/egg.jpg'), // id 6
-      const Ingredient(name: 'Milk', unit: 'ml', quantity: 250, photoPath: 'assets/images/milk.jpg'), // id 7
-      const Ingredient(name: 'Salt', unit: 'g', quantity: 400, photoPath: 'assets/images/salt.jpg'), // id 8
-      const Ingredient(name: 'Black pepper', unit: 'g', quantity: 15, photoPath: 'assets/images/black_pepper.jpg'), // id 9
-    ];
+    final beef = Ingredient(name: 'Beef', unit: 'g', quantity: 500, photoPath: 'assets/images/beef.jpg');
+    final beet = Ingredient(name: 'Beet', unit: 'g', quantity: 375, photoPath: 'assets/images/beet.jpg');
+    final cabbage = Ingredient(name: 'Cabbage', unit: 'g', quantity: 550, photoPath: 'assets/images/cabbage.jpg');
+    final carrot = Ingredient(name: 'Carrot', unit: 'g', quantity: 100, photoPath: 'assets/images/carrot.jpg');
+    final onion = Ingredient(name: 'Onion', unit: 'g', quantity: 250, photoPath: 'assets/images/onion.jpg');
+    final egg = Ingredient(name: 'Egg', unit: 'pcs', quantity: 11, photoPath: 'assets/images/egg.jpg');
+    final milk = Ingredient(name: 'Milk', unit: 'ml', quantity: 250, photoPath: 'assets/images/milk.jpg');
+    final salt = Ingredient(name: 'Salt', unit: 'g', quantity: 400, photoPath: 'assets/images/salt.jpg');
+    final pepper = Ingredient(name: 'Black pepper', unit: 'g', quantity: 15, photoPath: 'assets/images/black_pepper.jpg');
+
+    final ingredients = [beef, beet, cabbage, carrot, onion, egg, milk, salt, pepper];
 
     for (var i in ingredients) {
       await db.insert('ingredients', i.toMap());
     }
 
-    // Recipes
-    final recipes = [
-      const Recipe(
-        name: 'Borsch', 
-        photoPath: 'assets/images/borsch.jpg', 
-        cookingTime: 45, 
-        description: '1. Place meat in a large pot and cover with 3 liters of cold water...\n2. Sauté chopped onions and carrots...'
-      ),
-      const Recipe(
-        name: 'Stuffed cabbage rolls', 
-        photoPath: 'assets/images/cabbage_rolls.jpg', 
-        cookingTime: 80,
-        description: 'Delicious rolls with meat and rice...'
-      ),
-      const Recipe(
-        name: 'Potato pancakes', 
-        photoPath: 'assets/images/potato_pancakes.jpg', 
-        cookingTime: 45, 
-        description: 'Crispy potato pancakes...'
-      ),
-      const Recipe(
-        name: 'Tacos', 
-        photoPath: 'assets/images/tacos.jpg', 
-        cookingTime: 70,
-        description: 'Mexican classic...'
-      ),
-    ];
+    final borsch = Recipe(
+      name: 'Borsch', 
+      photoPath: 'assets/images/borsch.jpg', 
+      cookingTime: 45, 
+      steps: '1. Place meat in a large pot and cover with 3 liters of cold water...\n2. Sauté chopped onions and carrots...'
+    );
+
+    final cabbageRolls = Recipe(
+      name: 'Stuffed cabbage rolls', 
+      photoPath: 'assets/images/cabbage_rolls.jpg', 
+      cookingTime: 80,
+      steps: 'Delicious rolls with meat and rice...'
+    );
+
+    final pancakes = Recipe(
+      name: 'Potato pancakes', 
+      photoPath: 'assets/images/potato_pancakes.jpg', 
+      cookingTime: 45, 
+      steps: 'Crispy potato pancakes...'
+    );
+
+    final tacos = Recipe(
+      name: 'Tacos', 
+      photoPath: 'assets/images/tacos.jpg', 
+      cookingTime: 70,
+      steps: 'Mexican classic...'
+    );
+
+    final recipes = [borsch, cabbageRolls, pancakes, tacos];
 
     for (var r in recipes) {
       await db.insert('recipes', r.toMap());
     }
 
-    // Linking ingredients to Borsch (Recipe ID 1)
-    final borschIngredients = [
-      {'id': 1, 'qty': 500}, // Beef
-      {'id': 2, 'qty': 375}, // Beet
-      {'id': 3, 'qty': 550}, // Cabbage
-      {'id': 4, 'qty': 100}, // Carrot
-      {'id': 5, 'qty': 250}, // Onion
+    final borschLinks = [
+      IngredientInRecipe(recipeId: borsch.id, ingredientId: beef.id, quantity: 500),
+      IngredientInRecipe(recipeId: borsch.id, ingredientId: beet.id, quantity: 375),
+      IngredientInRecipe(recipeId: borsch.id, ingredientId: cabbage.id, quantity: 550),
+      IngredientInRecipe(recipeId: borsch.id, ingredientId: carrot.id, quantity: 100),
+      IngredientInRecipe(recipeId: borsch.id, ingredientId: onion.id, quantity: 250),
     ];
 
-    for (var item in borschIngredients) {
-      await db.insert('recipe_ingredients', {
-        'recipeId': 1,
-        'ingredientId': item['id'],
-        'quantity': item['qty'],
-      });
+    for (var link in borschLinks) {
+      await db.insert('recipe_ingredients', link.toMap());
     }
 
-    // Linking ingredients to Potato pancakes (Recipe ID 3)
-    await db.insert('recipe_ingredients', {
-      'recipeId': 3,
-      'ingredientId': 6, // Egg
-      'quantity': 2,
-    });
-     await db.insert('recipe_ingredients', {
-      'recipeId': 3,
-      'ingredientId': 7, // Milk
-      'quantity': 100,
-    });
+    final pancakesLinks = [
+      IngredientInRecipe(recipeId: pancakes.id, ingredientId: egg.id, quantity: 2),
+      IngredientInRecipe(recipeId: pancakes.id, ingredientId: milk.id, quantity: 100),
+    ];
 
+    for (var link in pancakesLinks) {
+      await db.insert('recipe_ingredients', link.toMap());
+    }
 
-    // Meal Plan Entries
     final now = DateTime.now();
         
     await db.insert('schedule', MealPlanEntry(
-      recipeId: 1, 
-      dateTime: now.copyWith(hour: 13, minute: 0, second: 0, millisecond: 0)
+      recipeId: borsch.id, 
+      dateTime: now.copyWith(hour: 13, minute: 0, second: 0, millisecond: 0),
+      recipeName: borsch.name,
+      recipePhotoPath: borsch.photoPath
     ).toMap());
 
     await db.insert('schedule', MealPlanEntry(
-      recipeId: 2, 
-      dateTime: now.copyWith(hour: 14, minute: 0, second: 0, millisecond: 0)
+      recipeId: cabbageRolls.id, 
+      dateTime: now.copyWith(hour: 14, minute: 0, second: 0, millisecond: 0),
+      recipeName: cabbageRolls.name,
+      recipePhotoPath: cabbageRolls.photoPath
     ).toMap());
     
     await db.insert('schedule', MealPlanEntry(
-      recipeId: 3, 
-      dateTime: now.copyWith(hour: 18, minute: 0, second: 0, millisecond: 0)
+      recipeId: pancakes.id, 
+      dateTime: now.copyWith(hour: 18, minute: 0, second: 0, millisecond: 0),
+      recipeName: pancakes.name,
+      recipePhotoPath: pancakes.photoPath
     ).toMap());
   }
 }

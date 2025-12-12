@@ -162,7 +162,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (widget.ingredient?.id != null) {
-                            context.read<PantryCubit>().deleteIngredient(widget.ingredient!.id!);
+                            context.read<PantryCubit>().deleteIngredient(widget.ingredient!.id);
                           }
                           Navigator.of(ctx).pop();
                           Navigator.of(context).pop();

@@ -55,7 +55,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     }
   }
 
-  Future<void> deleteMeal(int id) async {
+  Future<void> deleteMeal(String id) async {
     try {
       await _repository.deleteMeal(id);
       await _refreshData();

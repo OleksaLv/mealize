@@ -25,7 +25,7 @@ class PantryRepository {
     );
   }
 
-  Future<int> deleteIngredient(int id) async {
+  Future<int> deleteIngredient(String id) async {
     final db = await _dbHelper.database;
     return await db.delete(
       'ingredients',

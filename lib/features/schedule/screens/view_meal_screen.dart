@@ -36,7 +36,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
         name: widget.entry!.recipeName ?? '',
         photoPath: widget.entry!.recipePhotoPath,
         cookingTime: 0,
-        description: '',
+        steps: '',
       );
     } else {
       _selectedDate = widget.initialDate ?? DateTime.now();
@@ -120,7 +120,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
 
     final meal = MealPlanEntry(
       id: widget.entry?.id,
-      recipeId: _selectedRecipe!.id!,
+      recipeId: _selectedRecipe!.id,
       dateTime: dateTime,
     );
 
@@ -175,7 +175,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                       height: 48,
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<ScheduleCubit>().deleteMeal(widget.entry!.id!);
+                          context.read<ScheduleCubit>().deleteMeal(widget.entry!.id);
                           Navigator.of(ctx).pop();
                           Navigator.of(context).pop();
                         },

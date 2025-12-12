@@ -33,7 +33,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.recipe?.name ?? '');
-    _stepsController = TextEditingController(text: widget.recipe?.description ?? '');
+    _stepsController = TextEditingController(text: widget.recipe?.steps ?? '');
     _cookingTime = widget.recipe?.cookingTime ?? 1;
     _photoPath = widget.recipe?.photoPath;
     _cookingTimeController = TextEditingController(text: _cookingTime.toInt().toString());
@@ -61,7 +61,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
   Future<void> _loadIngredients() async {
     if (widget.recipe?.id == null) return;
     try {
-      final ingredients = await context.read<RecipesCubit>().getIngredients(widget.recipe!.id!);
+      final ingredients = await context.read<RecipesCubit>().getIngredients(widget.recipe!.id);
       if (mounted && ingredients.isNotEmpty) {
         setState(() {
           _ingredientsList = ingredients.map((i) => {
@@ -117,7 +117,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
       return _titleController.text.isNotEmpty;
     }
     return _titleController.text != widget.recipe!.name ||
-           _stepsController.text != widget.recipe!.description ||
+           _stepsController.text != widget.recipe!.steps ||
            _cookingTime != widget.recipe!.cookingTime ||
            _photoPath != widget.recipe!.photoPath ||
            true; 
@@ -129,7 +129,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
     final newRecipe = Recipe(
       id: widget.recipe?.id,
       name: _titleController.text,
-      description: _stepsController.text,
+      steps: _stepsController.text,
       cookingTime: _cookingTime,
       photoPath: _photoPath,
       isCustom: widget.recipe?.isCustom ?? true,
@@ -139,11 +139,11 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
       final qty = map['quantity'];
       final intQty = (qty is double) ? qty.toInt() : (qty as int);
       return IngredientInRecipe(
-        recipeId: widget.recipe?.id ?? 0,
-        ingredientId: map['id'] ?? 0, 
+        recipeId: widget.recipe!.id,
+        ingredientId: map['id'], 
         quantity: intQty,
       );
-    }).where((i) => i.ingredientId != 0).toList();
+    }).toList();
 
     if (widget.recipe == null) {
       context.read<RecipesCubit>().addRecipe(newRecipe, ingredients);
@@ -225,7 +225,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (widget.recipe?.id != null) {
-                            context.read<RecipesCubit>().deleteRecipe(widget.recipe!.id!);
+                            context.read<RecipesCubit>().deleteRecipe(widget.recipe!.id);
                           }
                           Navigator.of(ctx).pop();
                           Navigator.of(context).pop();

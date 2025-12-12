@@ -36,7 +36,7 @@ class PantryCubit extends Cubit<PantryState> {
     }
   }
 
-  Future<void> deleteIngredient(int id) async {
+  Future<void> deleteIngredient(String id) async {
     try {
       await _repository.deleteIngredient(id);
       loadPantryItems();

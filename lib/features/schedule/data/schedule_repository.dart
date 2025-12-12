@@ -26,7 +26,7 @@ class ScheduleRepository {
     return await db.insert('schedule', meal.toMap());
   }
 
-  Future<int> deleteMeal(int id) async {
+  Future<int> deleteMeal(String id) async {
     final db = await _dbHelper.database;
     return await db.delete('schedule', where: 'id = ?', whereArgs: [id]);
   }

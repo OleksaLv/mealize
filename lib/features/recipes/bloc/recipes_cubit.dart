@@ -37,7 +37,7 @@ class RecipesCubit extends Cubit<RecipesState> {
     }
   }
 
-  Future<void> deleteRecipe(int id) async {
+  Future<void> deleteRecipe(String id) async {
     try {
       await _repository.deleteRecipe(id);
       loadRecipes();
@@ -46,7 +46,7 @@ class RecipesCubit extends Cubit<RecipesState> {
     }
   }
 
-  Future<List<IngredientInRecipe>> getIngredients(int recipeId) {
+  Future<List<IngredientInRecipe>> getIngredients(String recipeId) {
     return _repository.getIngredientsForRecipe(recipeId);
   }
 }
