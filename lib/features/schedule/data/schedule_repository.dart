@@ -4,7 +4,7 @@ import 'meal_plan_entry_model.dart';
 class ScheduleRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Future<List<MealPlanEntry>> getMealsForDate(DateTime date) async {
+  Future<List<MealPlanEntry>> getAllMeals() async {
     final db = await _dbHelper.database;
     
     final result = await db.rawQuery('''
@@ -18,13 +18,7 @@ class ScheduleRepository {
       INNER JOIN recipes r ON s.recipeId = r.id
     ''');
 
-    final allMeals = result.map((json) => MealPlanEntry.fromMap(json)).toList();
-
-    return allMeals.where((meal) => 
-      meal.dateTime.year == date.year && 
-      meal.dateTime.month == date.month && 
-      meal.dateTime.day == date.day
-    ).toList();
+    return result.map((json) => MealPlanEntry.fromMap(json)).toList();
   }
 
   Future<int> addMeal(MealPlanEntry meal) async {
@@ -35,5 +29,15 @@ class ScheduleRepository {
   Future<int> deleteMeal(int id) async {
     final db = await _dbHelper.database;
     return await db.delete('schedule', where: 'id = ?', whereArgs: [id]);
+  }
+  
+  Future<void> updateMeal(MealPlanEntry meal) async {
+    final db = await _dbHelper.database;
+    await db.update(
+      'schedule', 
+      meal.toMap(),
+      where: 'id = ?',
+      whereArgs: [meal.id],
+    );
   }
 }

@@ -11,6 +11,7 @@ import 'package:mealize/core/widgets/custom_fab.dart';
 import '../bloc/schedule_cubit.dart';
 import '../bloc/schedule_state.dart';
 import '../data/meal_plan_entry_model.dart';
+import 'calendar_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -24,72 +25,78 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ScheduleCubit>().loadSchedule(DateTime.now());
+    context.read<ScheduleCubit>().loadSchedule();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      appBar: CustomAppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              AppStrings.schedule,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(width: 4),
-            IconButton(
-              icon: const Icon(Icons.open_in_full),
-              color: Theme.of(context).colorScheme.onSecondary,
-              onPressed: () {},
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined),
-            color: Theme.of(context).colorScheme.onSecondary,
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            color: Theme.of(context).colorScheme.onSecondary,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
+    return BlocBuilder<ScheduleCubit, ScheduleState>(
+      builder: (context, state) {
+        DateTime selectedDate = DateTime.now();
+        List<MealPlanEntry> meals = [];
+        bool isLoading = false;
+
+        if (state is ScheduleLoaded) {
+          selectedDate = state.selectedDate;
+          meals = state.dayMeals;
+        } else if (state is ScheduleLoading) {
+          isLoading = true;
+        }
+
+        return Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          appBar: CustomAppBar(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  AppStrings.schedule,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-              );
-            },
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.open_in_full),
+                  color: Theme.of(context).colorScheme.onSecondary,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => CalendarScreen(initialDate: selectedDate),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none_outlined),
+                color: Theme.of(context).colorScheme.onSecondary,
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(Icons.person_outline),
+                color: Theme.of(context).colorScheme.onSecondary,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+            ],
           ),
-          const SizedBox(width: 12),
-        ],
-      ),
-      body: BlocBuilder<ScheduleCubit, ScheduleState>(
-        builder: (context, state) {
-          DateTime selectedDate = DateTime.now();
-          List<MealPlanEntry> meals = [];
-          bool isLoading = false;
-
-          if (state is ScheduleLoaded) {
-            selectedDate = state.selectedDate;
-            meals = state.meals;
-          } else if (state is ScheduleLoading) {
-            isLoading = true;
-          }
-
-          return Column(
+          body: Column(
             children: [
               _WeekDaySelector(
                 selectedDate: selectedDate,
                 onDateSelected: (date) {
-                  context.read<ScheduleCubit>().loadSchedule(date);
+                  context.read<ScheduleCubit>().selectDate(date);
                 },
               ),
               const Divider(height: 1),
@@ -117,42 +124,35 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
               ),
             ],
-          );
-        },
-      ),
-      bottomNavigationBar: AppBottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              break;
-            case 1:
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const PantryScreen(),
-                ),
-              );
-              break;
-            case 2:
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const RecipesScreen(),
-                ),
-              );
-              break;
-          }
-        },
-      ),
-      floatingActionButton: CustomFAB(
-        onPressed: () {
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          ),
+          bottomNavigationBar: AppBottomNavBar(
+            currentIndex: 0,
+            onTap: (index) {
+              switch (index) {
+                case 0: break;
+                case 1:
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const PantryScreen()),
+                  );
+                  break;
+                case 2:
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const RecipesScreen()),
+                  );
+                  break;
+              }
+            },
+          ),
+          floatingActionButton: CustomFAB(
+            onPressed: () {
+            },
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        );
+      },
     );
   }
 }
-
-// Widgets for Time Scale and Week Day Selector
 
 class _WeekDaySelector extends StatefulWidget {
   final DateTime selectedDate;
@@ -176,7 +176,6 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
   void initState() {
     super.initState();
     _populateDays();
-    // Scroll to the current week after the layout is built
     WidgetsBinding.instance.addPostFrameCallback((_)  {
       _scrollToDate(widget.selectedDate);
     });
@@ -198,16 +197,13 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
 
   void _populateDays() {
     final now = DateTime.now();
-    // Показуємо поточний місяць
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
 
-    // Додаємо дні з попереднього місяця, щоб почати з понеділка
     int daysToSubtract = firstDayOfMonth.weekday - DateTime.monday;
     DateTime displayStartDate =
         firstDayOfMonth.subtract(Duration(days: daysToSubtract));
 
-    // Додаємо дні з наступного місяця, щоб закінчити неділею
     int daysToAdd = DateTime.sunday - lastDayOfMonth.weekday;
     DateTime displayEndDate =
         lastDayOfMonth.add(Duration(days: daysToAdd));
@@ -215,17 +211,13 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
     for (DateTime date = displayStartDate;
         date.isBefore(displayEndDate.add(const Duration(days: 1)));
         date = DateTime(date.year, date.month, date.day + 1)) {
-       // Додаємо всі дні підряд для простоти скролу
        _daysInMonth.add(date);
     }
   }
 
   void _scrollToDate(DateTime date) {
     if (_daysInMonth.isEmpty) return;
-    
-    // Знаходимо індекс понеділка тижня для цієї дати
     final mondayOfSelectedWeek = date.subtract(Duration(days: date.weekday - 1));
-    
     int index = -1;
     for(int i=0; i<_daysInMonth.length; i++) {
       if (_daysInMonth[i] != null && _isSameDay(_daysInMonth[i]!, mondayOfSelectedWeek)) {
@@ -233,7 +225,6 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
         break;
       }
     }
-
     if (index != -1) {
       final double offset = index * _dayItemWidth;
       if (_scrollController.hasClients) {
@@ -267,12 +258,9 @@ class _WeekDaySelectorState extends State<_WeekDaySelector> {
   }
 
   Widget _buildDayItem(BuildContext context, DateTime? date) {
-    if (date == null) {
-      return const SizedBox(width: _dayItemWidth);
-    }
+    if (date == null) return const SizedBox(width: _dayItemWidth);
 
     final isSelected = _isSameDay(date, widget.selectedDate);
-    // Робимо дні інших місяців трохи прозорими
     final isCurrentMonth = date.month == DateTime.now().month; 
 
     return InkWell(
@@ -327,7 +315,6 @@ class _TimeScale extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hours = List.generate(24, (index) => 0 + index);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: hours.map((hour) {
@@ -343,11 +330,7 @@ class _TimeScale extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
-                child: Divider(
-                  thickness: 1,
-                ),
-              ),
+              const Expanded(child: Divider(thickness: 1)),
             ],
           ),
         );
@@ -378,6 +361,7 @@ class _MealCard extends StatelessWidget {
       right: 0,
       height: cardHeight,
       child: Card(
+        // ПОВЕРНУВ КОЛІР ЯК У СТАРОМУ КОДІ
         color: theme.colorScheme.primary.withAlpha(39),
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -400,9 +384,7 @@ class _MealCard extends StatelessWidget {
                         : Container(color: Colors.white, child: const Icon(Icons.fastfood)),
                   ),
                 ),
-                
                 const SizedBox(width: 16),
-
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

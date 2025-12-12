@@ -25,19 +25,24 @@ Future<void> main() async {
   );
   
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-  
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final pantryRepository = PantryRepository();
-    final recipesRepository = RecipesRepository();
-    final scheduleRepository = ScheduleRepository();
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
+  final pantryRepository = PantryRepository();
+  final recipesRepository = RecipesRepository();
+  final scheduleRepository = ScheduleRepository();
+
+  @override
+  Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider<PantryCubit>(
