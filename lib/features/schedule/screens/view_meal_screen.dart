@@ -245,7 +245,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
           children: [
             const SizedBox(height: 16),
             
-            const Text('Dish', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500)),
+            const Text('Dish', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: _pickRecipe,
@@ -258,7 +258,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _selectedRecipe == null
-                  ? const Center(child: Text('Select from dishes', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)))
+                  ? const Center(child: Text('Select from dishes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)))
                   : Row(
                       children: [
                         ClipRRect(
@@ -287,7 +287,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
 
             const SizedBox(height: 24),
 
-            const Text('Date', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500)),
+            const Text('Date', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: _pickDate,
@@ -300,16 +300,13 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: theme.colorScheme.outline),
                 ),
-                child: Text(
-                  dateText,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                ),
+                child: Text(dateText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
 
             const SizedBox(height: 24),
 
-            const Text('Time', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500)),
+            const Text('Time', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: _pickTime,
@@ -322,10 +319,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: theme.colorScheme.outline),
                 ),
-                child: Text(
-                  timeText,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                ),
+                child: Text(timeText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
 
@@ -361,7 +355,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                         side: BorderSide(color: theme.colorScheme.outline),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
-                      child: const Text('Cancel', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ),

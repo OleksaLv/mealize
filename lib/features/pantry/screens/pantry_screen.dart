@@ -13,7 +13,9 @@ import '../data/ingredient_model.dart';
 import 'view_ingredient_screen.dart';
 
 class PantryScreen extends StatefulWidget {
-  const PantryScreen({super.key});
+  final bool isSelectionMode;
+
+  const PantryScreen({super.key, this.isSelectionMode = false});
 
   @override
   State<PantryScreen> createState() => _PantryScreenState();
@@ -35,6 +37,12 @@ class _PantryScreenState extends State<PantryScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.secondary,
       appBar: CustomAppBar(
+        leading: widget.isSelectionMode 
+            ? IconButton(
+                icon: const Icon(Icons.close), 
+                onPressed: () => Navigator.of(context).pop()
+              ) 
+            : null,
         title: const Text(
           AppStrings.pantry,
             style: TextStyle(
@@ -131,7 +139,10 @@ class _PantryScreenState extends State<PantryScreen> {
                     separatorBuilder: (_, __) => const Divider(),
                     itemBuilder: (context, index) {
                       final item = filteredList[index];
-                      return _PantryTile(ingredient: item);
+                      return _PantryTile(
+                        ingredient: item,
+                        isSelectionMode: widget.isSelectionMode,
+                      );
                     },
                   );
                 } else if (state is PantryError) {
@@ -143,7 +154,7 @@ class _PantryScreenState extends State<PantryScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: AppBottomNavBar(
+      bottomNavigationBar: widget.isSelectionMode ? null : AppBottomNavBar(
         currentIndex: 1,
         onTap: (index) {
           switch (index) {
@@ -166,7 +177,7 @@ class _PantryScreenState extends State<PantryScreen> {
           }
         },
       ),
-      floatingActionButton: CustomFAB(
+      floatingActionButton: widget.isSelectionMode ? null : CustomFAB(
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => const ViewIngredientScreen(),
@@ -202,94 +213,110 @@ class _PantryScreenState extends State<PantryScreen> {
 
 class _PantryTile extends StatelessWidget {
   final Ingredient ingredient;
+  final bool isSelectionMode;
 
-  const _PantryTile({required this.ingredient});
+  const _PantryTile({
+    required this.ingredient,
+    this.isSelectionMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).colorScheme.tertiary,
-              image: ingredient.photoPath != null
-                  ? DecorationImage(image: AssetImage(ingredient.photoPath!), fit: BoxFit.cover)
-                  : null,
+    return InkWell(
+      onTap: isSelectionMode ? () {
+        Navigator.of(context).pop(ingredient);
+      } : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.tertiary,
+                image: ingredient.photoPath != null
+                    ? DecorationImage(image: AssetImage(ingredient.photoPath!), fit: BoxFit.cover)
+                    : null,
+              ),
+              child: ingredient.photoPath == null ? const Icon(Icons.image_not_supported) : null,
             ),
-            child: ingredient.photoPath == null ? const Icon(Icons.image_not_supported) : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  ingredient.name,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ingredient.name,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    ingredient.notes ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSecondary),
+                  ),
+                ],
+              ),
+            ),
+            
+            if (!isSelectionMode) ...[
+              IconButton(
+                icon: const Icon(Icons.remove, size: 20),
+                onPressed: () {
+                  if (ingredient.quantity > 0) {
+                    final updated = ingredient.copyWith(quantity: ingredient.quantity - 1);
+                    context.read<PantryCubit>().updateIngredient(updated);
+                  }
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.tertiary, 
+                  padding: EdgeInsets.zero, 
+                  minimumSize: const Size(32, 32),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                Text(
-                  ingredient.notes ?? '',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSecondary),
+              ),
+              Container(
+                width: 50,
+                alignment: Alignment.center,
+                child: Text(
+                  '${ingredient.quantity.toInt()} ${ingredient.unit}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.remove, size: 20),
-            onPressed: () {
-              if (ingredient.quantity > 0) {
-                final updated = ingredient.copyWith(quantity: ingredient.quantity - 1);
-                context.read<PantryCubit>().updateIngredient(updated);
-              }
-            },
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.tertiary, 
-              padding: EdgeInsets.zero, 
-              minimumSize: const Size(32, 32),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-          Container(
-            width: 50,
-            alignment: Alignment.center,
-            child: Text(
-              '${ingredient.quantity.toInt()} ${ingredient.unit}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 20),
-            onPressed: () {
-              final updated = ingredient.copyWith(quantity: ingredient.quantity + 1);
-              context.read<PantryCubit>().updateIngredient(updated);
-            },
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.tertiary, 
-              padding: EdgeInsets.zero, 
-              minimumSize: const Size(32, 32),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => ViewIngredientScreen(ingredient: ingredient),
-              ));
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Icon(Icons.edit_outlined, size: 20, color: Theme.of(context).colorScheme.onSecondary),
-            ),
-          ),
-        ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.add, size: 20),
+                onPressed: () {
+                  final updated = ingredient.copyWith(quantity: ingredient.quantity + 1);
+                  context.read<PantryCubit>().updateIngredient(updated);
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.tertiary, 
+                  padding: EdgeInsets.zero, 
+                  minimumSize: const Size(32, 32),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => ViewIngredientScreen(ingredient: ingredient),
+                  ));
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(Icons.edit_outlined, size: 20, color: Theme.of(context).colorScheme.onSecondary),
+                ),
+              ),
+            ] else ...[
+              Text(ingredient.unit, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSecondary)),
+              const SizedBox(width: 8),
+              Icon(Icons.add, color: Theme.of(context).colorScheme.onSecondary),
+            ],
+          ],
+        ),
       ),
     );
   }
