@@ -1,0 +1,102 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'ingredient_model.dart';
+
+class FirestoreIngredientsDataSource {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  //Helpers
+  CollectionReference<Ingredient> _getStandardIngredientsRef() {
+    return _firestore.collection('ingredients').withConverter<Ingredient>(
+          fromFirestore: (snapshot, _) => Ingredient.fromFirestore(snapshot),
+          toFirestore: (ingredient, _) => ingredient.toFirestore(),
+        );
+  }
+
+  CollectionReference<Ingredient> _getUserCustomIngredientsRef(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('custom_ingredients')
+        .withConverter<Ingredient>(
+          fromFirestore: (snapshot, _) => Ingredient.fromFirestore(snapshot),
+          toFirestore: (ingredient, _) => ingredient.toFirestore(),
+        );
+  }
+
+  CollectionReference<Ingredient> _getPantryRef(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('pantry')
+        .withConverter<Ingredient>(
+          fromFirestore: (snapshot, _) => Ingredient.fromFirestore(snapshot),
+          toFirestore: (ingredient, _) => ingredient.toFirestore(),
+        );
+  }
+
+  // Read Methods
+  Future<List<Ingredient>> getStandardIngredients() async {
+    try {
+      final snapshot = await _getStandardIngredientsRef().get();
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch standard ingredients: $e');
+    }
+  }
+
+  Future<List<Ingredient>> getUserCustomIngredients(String userId) async {
+    try {
+      final snapshot = await _getUserCustomIngredientsRef(userId).get();
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch user custom ingredients: $e');
+    }
+  }
+
+  Future<List<Ingredient>> getPantry(String userId) async {
+    try {
+      final snapshot = await _getPantryRef(userId).get();
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch pantry: $e');
+    }
+  }
+
+  // Write Methods (Custom Ingredients)
+  Future<void> saveCustomIngredient(String userId, Ingredient ingredient) async {
+    try {
+      await _getUserCustomIngredientsRef(userId)
+          .doc(ingredient.id)
+          .set(ingredient, SetOptions(merge: true));
+    } catch (e) {
+      throw Exception('Failed to save custom ingredient: $e');
+    }
+  }
+
+  Future<void> deleteCustomIngredient(String userId, String ingredientId) async {
+    try {
+      await _getUserCustomIngredientsRef(userId).doc(ingredientId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete custom ingredient: $e');
+    }
+  }
+
+  // Write Methods (Pantry)
+  Future<void> savePantryItem(String userId, Ingredient item) async {
+    try {
+      await _getPantryRef(userId)
+          .doc(item.id)
+          .set(item, SetOptions(merge: true));
+    } catch (e) {
+      throw Exception('Failed to save pantry item: $e');
+    }
+  }
+
+  Future<void> deletePantryItem(String userId, String itemId) async {
+    try {
+      await _getPantryRef(userId).doc(itemId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete pantry item: $e');
+    }
+  }
+}
