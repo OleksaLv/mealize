@@ -1,6 +1,9 @@
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:uuid/uuid.dart';
 
 class ImagePickerService {
   final ImagePicker _picker = ImagePicker();
@@ -13,16 +16,28 @@ class ImagePickerService {
         imageQuality: 70,
       );
 
-      if (pickedFile != null) {
-        final File file = File(pickedFile.path);
-        
-        if (await file.exists()) {
-          return pickedFile.path;
-        }
+      if (pickedFile == null) return null;
+
+      final directory = await getApplicationDocumentsDirectory();
+      
+      final String imagesDirPath = '${directory.path}/user_images';
+      final Directory imagesDir = Directory(imagesDirPath);
+      
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
       }
-      return null;
+
+     final String fileExt = path.extension(pickedFile.path);
+      final String uniqueFileName = '${const Uuid().v4()}$fileExt';
+      final String permanentPath = '$imagesDirPath/$uniqueFileName';
+
+      final File tempFile = File(pickedFile.path);
+      final File permanentFile = await tempFile.copy(permanentPath);
+
+      return permanentFile.path;
+
     } catch (e) {
-      debugPrint('Image picking failed: $e');
+      debugPrint('Image picking and saving failed: $e');
       return null;
     }
   }

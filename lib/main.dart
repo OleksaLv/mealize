@@ -15,7 +15,6 @@ import 'features/settings/bloc/settings_cubit.dart';
 import 'core/constants/app_strings.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/services/sync_manager.dart';
 
 Future<void> main() async {
@@ -23,11 +22,6 @@ Future<void> main() async {
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
-  await Supabase.initialize(
-    url: 'https://necbuksoyvdbvatstvfb.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lY2J1a3NveXZkYnZhdHN0dmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1NDA4NzAsImV4cCI6MjA4MTExNjg3MH0.NolNm8pgbwePLGdC6DDzuM1UeYXeiC0LYlaWfpiGRi0',
   );
 
   await GoogleSignIn.instance.initialize(

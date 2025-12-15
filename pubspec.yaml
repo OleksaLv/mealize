@@ -36,6 +36,7 @@ dependencies:
   firebase_analytics: ^12.0.4
   firebase_crashlytics: ^5.0.4
   firebase_auth: ^6.1.2
+  firebase_storage: ^13.0.4
   google_sign_in: ^7.2.0
   flutter_bloc: ^8.1.6
   equatable: ^2.0.5
@@ -44,11 +45,12 @@ dependencies:
   table_calendar: ^3.1.2
   shared_preferences: ^2.3.2
   cloud_firestore: 6.1.0
-  supabase_flutter: ^2.8.1
   image_picker: ^1.1.2
   internet_connection_checker: ^1.0.0+1
   cached_network_image: ^3.4.1
   uuid: ^4.5.1
+  path_provider: ^2.1.5
+
 
 dev_dependencies:
   flutter_test:

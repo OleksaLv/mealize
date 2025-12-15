@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/db_helper.dart';
-import '../../../core/services/supabase_storage_service.dart';
+// import '../../../core/services/supabase_storage_service.dart';
 import 'firestore_ingredients_data_source.dart';
 import 'ingredient_model.dart';
 
@@ -13,7 +13,7 @@ class PantryRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final FirestoreIngredientsDataSource _firestoreDataSource =
       FirestoreIngredientsDataSource();
-  final SupabaseStorageService _storageService = SupabaseStorageService();
+  // final SupabaseStorageService _storageService = SupabaseStorageService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // constants for sync queue
@@ -89,8 +89,8 @@ class PantryRepository {
             (ingredient.photoUrl == null || ingredient.photoUrl!.isEmpty)) {
           final file = File(ingredient.photoPath!);
           if (file.existsSync()) {
-            cloudPhotoUrl =
-                await _storageService.uploadFile(file, 'ingredients');
+            // cloudPhotoUrl =
+            //     await _storageService.uploadFile(file, 'ingredients');
           }
         }
 
@@ -140,12 +140,11 @@ class PantryRepository {
       try {
         String? cloudPhotoUrl = ingredient.photoUrl;
 
-        if (ingredient.photoPath != null &&
-            !ingredient.photoPath!.startsWith('http')) {
+        if (ingredient.photoPath != null) {
           final file = File(ingredient.photoPath!);
           if (file.existsSync()) {
-            cloudPhotoUrl =
-                await _storageService.uploadFile(file, 'ingredients');
+            // cloudPhotoUrl =
+            //     await _storageService.uploadFile(file, 'ingredients');
           }
         }
 
@@ -183,6 +182,18 @@ class PantryRepository {
     if (maps.isEmpty) return;
     final ingredient = Ingredient.fromMap(maps.first);
 
+    if (ingredient.photoPath != null) {
+      try {
+        final localFile = File(ingredient.photoPath!);
+        if (await localFile.exists()) {
+          await localFile.delete();
+          debugPrint('Local file deleted: ${ingredient.photoPath}');
+        }
+      } catch (e) {
+        debugPrint('Error deleting local file: $e');
+      }
+    }
+
     await db.delete(
       'ingredients',
       where: 'id = ?',
@@ -196,7 +207,7 @@ class PantryRepository {
         if (ingredient.isCustom) {
           await _firestoreDataSource.deleteCustomIngredient(userId, id);
           if (ingredient.photoUrl != null) {
-            await _storageService.deleteFile(ingredient.photoUrl!);
+            // await _storageService.deleteFile(ingredient.photoUrl!);
           }
         }
       } catch (e) {

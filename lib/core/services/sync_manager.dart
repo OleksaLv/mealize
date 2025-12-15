@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 import '../database/db_helper.dart';
-import 'supabase_storage_service.dart';
+// import 'supabase_storage_service.dart';
 
 // Data Sources
 import '../../features/pantry/data/firestore_ingredients_data_source.dart';
@@ -20,7 +20,7 @@ import '../../features/schedule/data/meal_plan_entry_model.dart';
 
 class SyncManager {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  final SupabaseStorageService _storageService = SupabaseStorageService();
+  // final SupabaseStorageService _storageService = SupabaseStorageService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final FirestoreIngredientsDataSource _ingredientsSource = FirestoreIngredientsDataSource();
@@ -158,7 +158,7 @@ class SyncManager {
     final file = File(path);
     if (file.existsSync()) {
       try {
-        return await _storageService.uploadFile(file, folder);
+        // return await _storageService.uploadFile(file, folder);
       } catch (e) {
         debugPrint('SyncManager: Error uploading image: $e');
         return null;
