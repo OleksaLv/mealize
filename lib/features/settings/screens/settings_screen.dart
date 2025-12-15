@@ -7,6 +7,7 @@ import 'package:mealize/core/services/auth_repository.dart';
 import 'package:mealize/core/widgets/custom_app_bar.dart';
 import '../bloc/settings_cubit.dart';
 import '../bloc/settings_state.dart';
+import '../../auth/screens/auth_gate.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -113,10 +114,14 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Center(
                   child: TextButton(
-                    onPressed: () {
-                      authRepository.signOut();
-                      if (Navigator.of(context).canPop()) {
-                         Navigator.of(context).popUntil((route) => route.isFirst);
+                    onPressed: () async {
+                      await authRepository.signOut();
+                      
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const AuthGate()),
+                          (route) => false,
+                        );
                       }
                     },
                     child: const Text(
