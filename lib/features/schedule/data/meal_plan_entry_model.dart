@@ -66,4 +66,21 @@ class MealPlanEntry {
       'recipePhotoUrl': recipePhotoUrl,
     };
   }
+
+  MealPlanEntry copyWith({
+    String? recipeId,
+    DateTime? dateTime,
+    String? recipeName,
+    String? recipePhotoPath,
+    String? recipePhotoUrl,
+  }) {
+    return MealPlanEntry(
+      id: id,
+      recipeId: recipeId ?? this.recipeId,
+      dateTime: dateTime ?? this.dateTime,
+      recipeName: recipeName ?? this.recipeName,
+      recipePhotoPath: recipePhotoPath ?? this.recipePhotoPath,
+      recipePhotoUrl: recipePhotoUrl ?? this.recipePhotoUrl,
+    );
+  }
 }

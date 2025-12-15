@@ -82,6 +82,17 @@ class DatabaseHelper {
       )
     ''');
 
+    await db.execute('''
+      CREATE TABLE pending_actions (
+        id TEXT PRIMARY KEY,
+        action TEXT NOT NULL,
+        collection TEXT NOT NULL,
+        docId TEXT NOT NULL,
+        data TEXT,
+        createdAt TEXT NOT NULL
+      )
+    ''');
+
     await _seedData(db);
   }
 

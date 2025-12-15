@@ -29,8 +29,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _filterCustom = true;
 
   FilterResult? _advancedFilters;
-  List<int> _availableRecipeIds = [];
-  List<int> _ingredientFilteredIds = [];
+  List<String> _availableRecipeIds = [];
+  List<String> _ingredientFilteredIds = [];
 
   @override
   void initState() {

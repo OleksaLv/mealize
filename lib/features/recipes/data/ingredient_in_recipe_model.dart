@@ -68,4 +68,26 @@ class IngredientInRecipe {
       'photoUrl': ingredientPhotoUrl,
     };
   }
+
+  IngredientInRecipe copyWith({
+    String? id,
+    String? recipeId,
+    String? ingredientId,
+    int? quantity,
+    String? ingredientName,
+    String? ingredientUnit,
+    String? ingredientPhoto,
+    String? ingredientPhotoUrl,
+  }) {
+    return IngredientInRecipe(
+      id: id ?? this.id,
+      recipeId: recipeId ?? this.recipeId,
+      ingredientId: ingredientId ?? this.ingredientId,
+      quantity: quantity ?? this.quantity,
+      ingredientName: ingredientName ?? this.ingredientName,
+      ingredientUnit: ingredientUnit ?? this.ingredientUnit,
+      ingredientPhoto: ingredientPhoto ?? this.ingredientPhoto,
+      ingredientPhotoUrl: ingredientPhotoUrl ?? this.ingredientPhotoUrl,
+    );
+  }
 }

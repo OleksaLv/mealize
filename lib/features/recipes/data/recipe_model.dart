@@ -65,4 +65,24 @@ class Recipe {
       'isCustom': isCustom,
     };
   }
+
+  Recipe copyWith({
+    String? id,
+    String? name,
+    String? photoPath,
+    String? photoUrl,
+    int? cookingTime,
+    String? steps,
+    bool? isCustom,
+  }) {
+    return Recipe(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      photoPath: photoPath ?? this.photoPath,
+      photoUrl: photoUrl ?? this.photoUrl,
+      cookingTime: cookingTime ?? this.cookingTime,
+      steps: steps ?? this.steps,
+      isCustom: isCustom ?? this.isCustom,
+    );
+  }
 }
