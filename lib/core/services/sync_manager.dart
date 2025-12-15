@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 import '../database/db_helper.dart';
-// import 'supabase_storage_service.dart';
+import 'firebase_storage_service.dart';
 
 // Data Sources
 import '../../features/pantry/data/firestore_ingredients_data_source.dart';
@@ -20,7 +20,9 @@ import '../../features/schedule/data/meal_plan_entry_model.dart';
 
 class SyncManager {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  // final SupabaseStorageService _storageService = SupabaseStorageService();
+  
+  final FirebaseStorageService _storageService = FirebaseStorageService();
+  
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final FirestoreIngredientsDataSource _ingredientsSource = FirestoreIngredientsDataSource();
@@ -86,7 +88,9 @@ class SyncManager {
   Future<bool> _syncPantry(String userId, String action, String docId, Map<String, dynamic> data) async {
     if (action == 'DELETE') {
       await _ingredientsSource.deletePantryItem(userId, docId);
-      await _ingredientsSource.deleteCustomIngredient(userId, docId);
+      try {
+        await _ingredientsSource.deleteCustomIngredient(userId, docId);
+      } catch (_) {}
       return true;
     }
 
@@ -158,7 +162,7 @@ class SyncManager {
     final file = File(path);
     if (file.existsSync()) {
       try {
-        // return await _storageService.uploadFile(file, folder);
+        return await _storageService.uploadFile(file, folder);
       } catch (e) {
         debugPrint('SyncManager: Error uploading image: $e');
         return null;

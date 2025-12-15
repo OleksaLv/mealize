@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/db_helper.dart';
-// import '../../../core/services/supabase_storage_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 import '../../pantry/data/ingredient_model.dart';
 import 'firestore_recipes_data_source.dart';
 import 'recipe_model.dart';
@@ -15,7 +15,9 @@ class RecipesRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final FirestoreRecipesDataSource _firestoreDataSource =
       FirestoreRecipesDataSource();
-  // final SupabaseStorageService _storageService = SupabaseStorageService();
+  
+  final FirebaseStorageService _storageService = FirebaseStorageService();
+  
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static const String _actionCreate = 'CREATE';
@@ -156,7 +158,7 @@ class RecipesRepository {
             (recipe.photoUrl == null || recipe.photoUrl!.isEmpty)) {
           final file = File(recipe.photoPath!);
           if (file.existsSync()) {
-            // cloudPhotoUrl = await _storageService.uploadFile(file, 'recipes');
+            cloudPhotoUrl = await _storageService.uploadFile(file, 'recipes');
           }
         }
 
@@ -224,7 +226,7 @@ class RecipesRepository {
         if (recipe.photoPath != null) {
           final file = File(recipe.photoPath!);
           if (file.existsSync()) {
-            // cloudPhotoUrl = await _storageService.uploadFile(file, 'recipes');
+            cloudPhotoUrl = await _storageService.uploadFile(file, 'recipes');
           }
         }
 
@@ -262,7 +264,7 @@ class RecipesRepository {
         if (recipe.isCustom) {
           await _firestoreDataSource.deleteCustomRecipe(userId, id);
           if (recipe.photoUrl != null) {
-            // await _storageService.deleteFile(recipe.photoUrl!);
+            await _storageService.deleteFile(recipe.photoUrl!);
           }
         }
       } catch (e) {

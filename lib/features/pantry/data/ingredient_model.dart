@@ -65,8 +65,6 @@ class Ingredient {
     return {
       'name': name,
       'unit': unit,
-      'notes': notes,
-      'quantity': quantity,
       'photoUrl': photoUrl,
       'isCustom': isCustom,
     };

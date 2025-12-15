@@ -63,9 +63,6 @@ class IngredientInRecipe {
     return {
       'ingredientId': ingredientId,
       'quantity': quantity,
-      'name': ingredientName,
-      'unit': ingredientUnit,
-      'photoUrl': ingredientPhotoUrl,
     };
   }
 

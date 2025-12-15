@@ -36,6 +36,13 @@ class FirestoreIngredientsDataSource {
         );
   }
 
+  CollectionReference<Map<String, dynamic>> _getPantryRawRef(String userId) {
+    return _mealizeRef
+        .collection('users')
+        .doc(userId)
+        .collection('pantry');
+  }
+
   // Read Methods
   Future<List<Ingredient>> getStandardIngredients() async {
     try {
@@ -83,12 +90,16 @@ class FirestoreIngredientsDataSource {
     }
   }
 
-  // Write Methods (Pantry)
   Future<void> savePantryItem(String userId, Ingredient item) async {
     try {
-      await _getPantryRef(userId)
+      final dataToSave = {
+        'quantity': item.quantity,
+        'notes': item.notes,
+      };
+
+      await _getPantryRawRef(userId)
           .doc(item.id)
-          .set(item, SetOptions(merge: true));
+          .set(dataToSave, SetOptions(merge: true));
     } catch (e) {
       throw Exception('Failed to save pantry item: $e');
     }
