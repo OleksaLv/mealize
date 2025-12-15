@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/universal_image.dart';
+import '../../../../core/services/image_picker_service.dart';
 import '../bloc/pantry_cubit.dart';
 import '../data/ingredient_model.dart';
-import 'package:flutter/services.dart';
 
 class ViewIngredientScreen extends StatefulWidget {
   final Ingredient? ingredient;
@@ -16,12 +18,16 @@ class ViewIngredientScreen extends StatefulWidget {
 }
 
 class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
+  final _pickerService = ImagePickerService();
+  
   late TextEditingController _titleController;
   late TextEditingController _notesController;
   late int _quantity;
   String _unit = 'pcs';
-  String? _photoPath;
   late TextEditingController _quantityController;
+
+  String? _photoPath;
+  String? _photoUrl;
 
   bool get _isLocked => widget.ingredient != null && !widget.ingredient!.isCustom;
 
@@ -32,8 +38,10 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
     _notesController = TextEditingController(text: widget.ingredient?.notes ?? '');
     _quantity = widget.ingredient?.quantity ?? 1;
     _unit = widget.ingredient?.unit ?? 'pcs';
-    _photoPath = widget.ingredient?.photoPath;
     _quantityController = TextEditingController(text: _quantity.toInt().toString());
+
+    _photoPath = widget.ingredient?.photoPath;
+    _photoUrl = widget.ingredient?.photoUrl;
 
     _titleController.addListener(_updateState);
     _notesController.addListener(_updateState);
@@ -52,7 +60,16 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   }
 
   void _updateState() {
-    setState(() {}); 
+    setState(() {});
+  }
+
+  Future<void> _pickPhoto() async {
+    final pickedPath = await _pickerService.showImageSourceDialog(context);
+    if (pickedPath != null) {
+      setState(() {
+        _photoPath = pickedPath;
+      });
+    }
   }
 
   bool get _hasChanges {
@@ -66,7 +83,8 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
            _notesController.text != initialNotes ||
            _quantity != widget.ingredient!.quantity ||
            _unit != widget.ingredient!.unit ||
-           _photoPath != widget.ingredient!.photoPath;
+           _photoPath != widget.ingredient!.photoPath ||
+           _photoUrl != widget.ingredient!.photoUrl;
   }
 
   void _onSave() {
@@ -78,7 +96,8 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
       notes: _notesController.text,
       unit: _unit,
       quantity: _quantity,
-      photoPath: _photoPath,
+      photoPath: _photoPath, 
+      photoUrl: _photoUrl, 
       isCustom: widget.ingredient?.isCustom ?? true,
     );
 
@@ -91,7 +110,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   }
 
   void _onDelete() {
-    showDialog(
+     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -103,36 +122,18 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                  Icons.warning_rounded,
-                  color: Colors.red,
-                  size: 64,
-                ),
+              const Icon(Icons.warning_rounded, color: Colors.red, size: 64),
               const SizedBox(height: 20),
-
               Text(
                 'Delete "${widget.ingredient?.name}"?',
-                textAlign: TextAlign.start,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                  height: 1.2,
-                ),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black, height: 1.2),
               ),
               const SizedBox(height: 12),
-
               Text(
                 'Are you sure you want to delete this ingredient? This action cannot be undone.',
-                textAlign: TextAlign.start,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
               ),
               const SizedBox(height: 32),
-
               Row(
                 children: [
                   Expanded(
@@ -140,22 +141,11 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                       height: 48,
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          foregroundColor: Colors.black87,
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                        child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
                   Expanded(
                     child: SizedBox(
                       height: 48,
@@ -171,14 +161,8 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
-                        child: const Text(
-                          'Delete',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                        child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ),
@@ -195,7 +179,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.ingredient != null;
-    final lockedColor = Theme.of(context).colorScheme.tertiary; 
+    final lockedColor = Theme.of(context).colorScheme.tertiary;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -218,7 +202,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             AppTextField(
               labelText: 'Title',
               controller: _titleController,
-              enabled: !_isLocked, 
+              enabled: !_isLocked,
             ),
             
             const SizedBox(height: 24),
@@ -227,42 +211,33 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Container(
+                UniversalImage(
                   width: 100,
                   height: 100,
-                  margin: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: _photoPath != null
-                        ? DecorationImage(image: AssetImage(_photoPath!), fit: BoxFit.cover)
-                        : null,
+                  borderRadius: BorderRadius.circular(8),
+                  photoPath: _photoPath,
+                  photoUrl: _photoUrl,
+                  fallbackAssetPath: 'assets/images/placeholder_ingredient.png',
+                  placeholder: Container(
+                    width: 100, height: 100, 
+                    color: Colors.grey[200], 
+                    child: const Icon(Icons.image, color: Colors.grey)
                   ),
-                  child: _photoPath == null ? const Icon(Icons.image_not_supported) : null,
                 ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(
                         child: OutlinedButton(
-                          onPressed: _isLocked ? null : () {}, 
+                          onPressed: _isLocked ? null : _pickPhoto,
                           style: OutlinedButton.styleFrom(
                             backgroundColor: _isLocked ? lockedColor : null,
                             side: _isLocked ? BorderSide.none : null,
                           ),
-                          child: Text('Take photo', selectionColor: Colors.black,)
+                          child: const Text('Change photo'),
                         )
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        child: OutlinedButton(
-                          onPressed: _isLocked ? null : () {}, 
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: _isLocked ? lockedColor : null,
-                            side: _isLocked ? BorderSide.none : null,
-                          ),
-                          child: Text('Select from gallery')
-                        ),
                       ),
                     ],
                   ),
@@ -272,7 +247,7 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
             
             const SizedBox(height: 24),
             
-            const Text('Units of measurement', style: TextStyle(fontWeight: FontWeight.w500)),
+             const Text('Units of measurement', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -285,9 +260,6 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                 child: DropdownButton<String>(
                   value: _unit,
                   isExpanded: true,
-                  style: TextStyle(color: Colors.black, fontSize: 16),
-                  iconEnabledColor: Theme.of(context).colorScheme.onSecondary,
-                  iconDisabledColor: Theme.of(context).colorScheme.onSecondary,
                   items: ['pcs', 'g', 'ml', 'kg', 'l'].map((String value) {
                     return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
@@ -313,10 +285,6 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
                 ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
-                ),
                 fillColor: Theme.of(context).colorScheme.secondary,
               ),
             ),
@@ -339,7 +307,6 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                     backgroundColor: Theme.of(context).colorScheme.tertiary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(32, 32),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -381,7 +348,6 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                     backgroundColor: Theme.of(context).colorScheme.tertiary,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(32, 32),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -396,13 +362,10 @@ class _ViewIngredientScreenState extends State<ViewIngredientScreen> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        disabledBackgroundColor: Theme.of(context).colorScheme.error.withAlpha(128), 
-                        disabledForegroundColor: Theme.of(context).colorScheme.onError,
                         backgroundColor: Theme.of(context).colorScheme.error,
                         foregroundColor: Theme.of(context).colorScheme.onError,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         minimumSize: const Size(0, 50),
-                        elevation: _isLocked ? 0 : 2,
                       ),
                       onPressed: _isLocked ? null : _onDelete,
                       child: const Text('Delete'),

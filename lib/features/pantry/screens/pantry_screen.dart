@@ -11,6 +11,7 @@ import '../bloc/pantry_cubit.dart';
 import '../bloc/pantry_state.dart';
 import '../data/ingredient_model.dart';
 import 'view_ingredient_screen.dart';
+import '../../../../core/widgets/universal_image.dart';
 
 class PantryScreen extends StatefulWidget {
   final bool isSelectionMode;
@@ -230,17 +231,17 @@ class _PantryTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
           children: [
-            Container(
+            UniversalImage(
               width: 50,
               height: 50,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8),
+              photoPath: ingredient.photoPath,
+              photoUrl: ingredient.photoUrl,
+              fallbackAssetPath: 'assets/images/placeholder_ingredient.png',
+              placeholder: Container(
                 color: Theme.of(context).colorScheme.tertiary,
-                image: ingredient.photoPath != null
-                    ? DecorationImage(image: AssetImage(ingredient.photoPath!), fit: BoxFit.cover)
-                    : null,
+                child: const Icon(Icons.image, size: 20),
               ),
-              child: ingredient.photoPath == null ? const Icon(Icons.image_not_supported) : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -251,12 +252,13 @@ class _PantryTile extends StatelessWidget {
                     ingredient.name,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
-                  Text(
-                    ingredient.notes ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSecondary),
-                  ),
+                  if (ingredient.notes != null && ingredient.notes!.isNotEmpty)
+                    Text(
+                      ingredient.notes!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSecondary),
+                    ),
                 ],
               ),
             ),

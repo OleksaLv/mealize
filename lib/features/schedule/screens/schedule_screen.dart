@@ -13,6 +13,7 @@ import '../bloc/schedule_state.dart';
 import '../data/meal_plan_entry_model.dart';
 import 'calendar_screen.dart';
 import 'view_meal_screen.dart';
+import '../../../../core/widgets/universal_image.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -369,7 +370,7 @@ class _MealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const double cardHeight = _TimeScale.hourHeight - 16; 
+    const double cardHeight = _TimeScale.hourHeight - 16;
 
     return Positioned(
       top: topOffset,
@@ -377,8 +378,7 @@ class _MealCard extends StatelessWidget {
       right: 0,
       height: cardHeight,
       child: Card(
-        // ПОВЕРНУВ КОЛІР ЯК У СТАРОМУ КОДІ
-        color: theme.colorScheme.primary.withAlpha(39),
+        color: theme.colorScheme.primary.withAlpha(38),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
@@ -393,11 +393,15 @@ class _MealCard extends StatelessWidget {
                 SizedBox(
                   width: 56,
                   height: 56,
-                  child: ClipRRect(
+                  child: UniversalImage(
                     borderRadius: BorderRadius.circular(10.0),
-                    child: (mealEntry.recipePhotoPath != null)
-                        ? Image.asset(mealEntry.recipePhotoPath!, fit: BoxFit.cover)
-                        : Container(color: Colors.white, child: const Icon(Icons.fastfood)),
+                    photoPath: mealEntry.recipePhotoPath,
+                    photoUrl: mealEntry.recipePhotoUrl,
+                    fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                    placeholder: Container(
+                      color: Colors.white,
+                      child: const Icon(Icons.fastfood, color: Colors.grey),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),

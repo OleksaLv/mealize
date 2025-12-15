@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:mealize/core/widgets/primary_button.dart';
 import 'package:mealize/features/recipes/screens/recipes_screen.dart';
 import 'package:mealize/features/recipes/data/recipe_model.dart';
+import '../../../../core/widgets/universal_image.dart';
 import '../bloc/schedule_cubit.dart';
 import '../data/meal_plan_entry_model.dart';
 
@@ -35,6 +36,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
         id: widget.entry!.recipeId,
         name: widget.entry!.recipeName ?? '',
         photoPath: widget.entry!.recipePhotoPath,
+        photoUrl: widget.entry!.recipePhotoUrl,
         cookingTime: 0,
         steps: '',
       );
@@ -116,7 +118,6 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
       _selectedTime!.hour,
       _selectedTime!.minute,
     );
-
 
     final meal = MealPlanEntry(
       id: widget.entry?.id,
@@ -256,14 +257,18 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                   ? const Center(child: Text('Select from dishes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)))
                   : Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: SizedBox(
-                            width: 40, 
-                            height: 40,
-                            child: _selectedRecipe!.photoPath != null 
-                              ? Image.asset(_selectedRecipe!.photoPath!, fit: BoxFit.cover)
-                              : const Icon(Icons.fastfood, color: Colors.grey),
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: UniversalImage(
+                            borderRadius: BorderRadius.circular(8),
+                            photoPath: _selectedRecipe!.photoPath,
+                            photoUrl: _selectedRecipe!.photoUrl,
+                            fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                            placeholder: Container(
+                               color: Colors.grey[200], 
+                               child: const Icon(Icons.fastfood, color: Colors.grey)
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),

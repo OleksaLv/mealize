@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/universal_image.dart';
+import '../../../../core/services/image_picker_service.dart';
 import '../../pantry/data/ingredient_model.dart';
 import '../../pantry/screens/pantry_screen.dart';
 import '../bloc/recipes_cubit.dart';
@@ -19,11 +21,15 @@ class ViewDishScreen extends StatefulWidget {
 }
 
 class _ViewDishScreenState extends State<ViewDishScreen> {
+  final _pickerService = ImagePickerService();
+  
   late TextEditingController _titleController;
   late TextEditingController _stepsController;
   late int _cookingTime;
-  String? _photoPath;
   late TextEditingController _cookingTimeController;
+  
+  String? _photoPath;
+  String? _photoUrl;
   
   List<Map<String, dynamic>> _ingredientsList = [];
 
@@ -35,7 +41,10 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
     _titleController = TextEditingController(text: widget.recipe?.name ?? '');
     _stepsController = TextEditingController(text: widget.recipe?.steps ?? '');
     _cookingTime = widget.recipe?.cookingTime ?? 1;
+    
     _photoPath = widget.recipe?.photoPath;
+    _photoUrl = widget.recipe?.photoUrl;
+    
     _cookingTimeController = TextEditingController(text: _cookingTime.toInt().toString());
 
     if (widget.recipe != null) {
@@ -69,7 +78,8 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
             'name': i.ingredientName ?? '',
             'quantity': i.quantity.toDouble(),
             'unit': i.ingredientUnit ?? '',
-            'image': i.ingredientPhoto,
+            'imagePath': i.ingredientPhoto,
+            'imageUrl': i.ingredientPhotoUrl,
           }).toList();
         });
       }
@@ -102,8 +112,18 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
           'name': picked.name,
           'quantity': 0.0,
           'unit': picked.unit,
-          'image': picked.photoPath,
+          'imagePath': picked.photoPath,
+          'imageUrl': picked.photoUrl,
         });
+      });
+    }
+  }
+
+  Future<void> _pickRecipePhoto() async {
+    final pickedPath = await _pickerService.showImageSourceDialog(context);
+    if (pickedPath != null) {
+      setState(() {
+        _photoPath = pickedPath;
       });
     }
   }
@@ -120,7 +140,8 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
            _stepsController.text != widget.recipe!.steps ||
            _cookingTime != widget.recipe!.cookingTime ||
            _photoPath != widget.recipe!.photoPath ||
-           true; 
+           _photoUrl != widget.recipe!.photoUrl ||
+           true;
   }
 
   void _onSave() {
@@ -132,6 +153,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
       steps: _stepsController.text,
       cookingTime: _cookingTime,
       photoPath: _photoPath,
+      photoUrl: _photoUrl,
       isCustom: widget.recipe?.isCustom ?? true,
     );
 
@@ -139,9 +161,11 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
       final qty = map['quantity'];
       final intQty = (qty is double) ? qty.toInt() : (qty as int);
       return IngredientInRecipe(
-        recipeId: widget.recipe!.id,
+        recipeId: widget.recipe?.id ?? '',
         ingredientId: map['id'], 
         quantity: intQty,
+        ingredientPhoto: map['imagePath'],
+        ingredientPhotoUrl: map['imageUrl'],
       );
     }).toList();
 
@@ -154,101 +178,34 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
   }
   
   void _onDelete() {
-    showDialog(
+     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(
-                  Icons.warning_rounded,
-                  color: Colors.red,
-                  size: 64,
-                ),
-              const SizedBox(height: 20),
-
-              Text(
-                'Delete "${widget.recipe?.name}"?',
-                textAlign: TextAlign.start,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Text(
-                'Are you sure you want to delete this recipe? This action cannot be undone.',
-                textAlign: TextAlign.start,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          foregroundColor: Colors.black87,
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (widget.recipe?.id != null) {
-                            context.read<RecipesCubit>().deleteRecipe(widget.recipe!.id);
-                          }
-                          Navigator.of(ctx).pop();
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Delete',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-            ],
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               const Text('Delete Recipe?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+               const SizedBox(height: 20),
+               Row(children: [
+                 Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel'))),
+                 const SizedBox(width: 10),
+                 Expanded(child: ElevatedButton(
+                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                   onPressed: () {
+                     if (widget.recipe?.id != null) {
+                        context.read<RecipesCubit>().deleteRecipe(widget.recipe!.id);
+                     }
+                     Navigator.pop(ctx);
+                     Navigator.pop(context);
+                   }, 
+                   child: const Text('Delete')
+                 )),
+               ])
+             ],
           ),
         ),
       ),
@@ -296,42 +253,33 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Container(
+                UniversalImage(
                   width: 100,
                   height: 100,
-                  margin: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: _photoPath != null
-                        ? DecorationImage(image: AssetImage(_photoPath!), fit: BoxFit.cover)
-                        : null,
+                  borderRadius: BorderRadius.circular(8),
+                  photoPath: _photoPath,
+                  photoUrl: _photoUrl,
+                  fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                  placeholder: Container(
+                    width: 100, height: 100,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.restaurant, color: Colors.grey),
                   ),
-                  child: _photoPath == null ? const Icon(Icons.image_not_supported) : null,
                 ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(
                         child: OutlinedButton(
-                          onPressed: _isLocked ? null : () {}, 
+                          onPressed: _isLocked ? null : _pickRecipePhoto, 
                           style: OutlinedButton.styleFrom(
                             backgroundColor: _isLocked ? lockedColor : null,
                             side: _isLocked ? BorderSide.none : null,
                           ),
-                          child: const Text('Take photo')
+                          child: const Text('Change photo'),
                         )
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        child: OutlinedButton(
-                          onPressed: _isLocked ? null : () {}, 
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: _isLocked ? lockedColor : null,
-                            side: _isLocked ? BorderSide.none : null,
-                          ),
-                          child: const Text('Select from gallery')
-                        ),
                       ),
                     ],
                   ),
@@ -343,7 +291,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
             
             const Text('Cooking time (minutes)', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
-            Row(
+             Row(
               children: [
                 if (!_isLocked) ...[
                   IconButton(
@@ -368,36 +316,20 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                 SizedBox(
                   width: 80,
                   height: 32,
-                  child: _isLocked
-                      ? Center(
-                          child: Text(
-                            '$_cookingTime',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        )
-                      : TextFormField(
-                          controller: _cookingTimeController,
-                          textAlign: TextAlign.center,
-                          textAlignVertical: TextAlignVertical.center,
-                          keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          onChanged: (value) {
-                            final parsed = int.tryParse(value.isEmpty ? '0' : value);
-                            setState(() {
-                              _cookingTime = (parsed ?? 0).toInt();
-                            });
-                          },
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
+                  child: TextFormField(
+                      controller: _cookingTimeController,
+                      enabled: !_isLocked,
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      onChanged: (val) => setState(() => _cookingTime = int.tryParse(val) ?? 0),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        fillColor: _isLocked ? lockedColor : Colors.white,
+                        filled: true,
+                      ),
+                  ),
                 ),
 
                 if (!_isLocked) ...[
@@ -433,30 +365,21 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                 initiallyExpanded: true,
                 iconColor: Colors.black,
                 collapsedIconColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 children: [
                   ..._ingredientsList.map((ing) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
-                          Container(
+                          SizedBox(
                             width: 40,
                             height: 40,
-                            decoration: BoxDecoration(
+                            child: UniversalImage(
                               borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: ing['image'] != null
-                                  ? Image.asset(
-                                      ing['image'], 
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (c, o, s) => const Icon(Icons.fastfood, color: Colors.grey),
-                                    )
-                                  : const Icon(Icons.fastfood, color: Colors.grey),
+                              photoPath: ing['imagePath'],
+                              photoUrl: ing['imageUrl'],
+                              fallbackAssetPath: 'assets/images/placeholder_ingredient.png',
+                              placeholder: Container(color: Colors.grey[200]),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -467,7 +390,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                             ),
                           ),
-
+                          
                           if (!_isLocked) ...[
                             IconButton(
                               icon: const Icon(Icons.remove, size: 20),
@@ -488,49 +411,11 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                           ],
                           
                           SizedBox(
-                            width: 80,
-                            height: 32,
-                            child: _isLocked
-                              ? Center(
-                                  child: Text(
-                                    ing['quantity'].toInt().toString(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                )
-                              : TextFormField(
-                                  enabled: true,
-                                  textAlign: TextAlign.center,
-                                  textAlignVertical: TextAlignVertical.center,
-                                  keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
-                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                  controller: TextEditingController(text: ing['quantity'].toInt().toString()),
-                                  onChanged: (value) {
-                                    final parsed = int.tryParse(value.isEmpty ? '0' : value);
-                                    setState(() {
-                                      ing['quantity'] = (parsed ?? 0).toDouble();
-                                    });
-                                  },
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    filled: true,
-                                    fillColor: Theme.of(context).colorScheme.secondary,
-                                  ),
-                                ),
-                          ),
-                          const SizedBox(width: 4),
-                          SizedBox(
-                            width: 30,
+                            width: 60,
                             child: Text(
-                              ing['unit'],
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                              '${ing['quantity'].toInt()} ${ing['unit']}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
                             ),
                           ),
                           
@@ -551,21 +436,13 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             InkWell(
-                                onTap: () {
-                                    setState(() {
-                                        _ingredientsList.remove(ing);
-                                    });
-                                },
+                                onTap: () => setState(() => _ingredientsList.remove(ing)),
                                 borderRadius: BorderRadius.circular(20),
                                 child: Padding(
                                     padding: const EdgeInsets.all(4.0),
-                                    child: Icon(
-                                        Icons.close, 
-                                        size: 20, 
-                                        color: Theme.of(context).colorScheme.onSecondary
-                                    ),
+                                    child: Icon(Icons.close, size: 20, color: Theme.of(context).colorScheme.onSecondary),
                                 ),
                             ),
                           ],
@@ -575,19 +452,19 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                   }),
 
                   if (!_isLocked)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: _pickIngredient,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Theme.of(context).colorScheme.outline),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: _pickIngredient,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                          child: const Text('Add ingredient'),
                         ),
-                        child: const Text('Add ingredient',),
                       ),
                     ),
                 ],
@@ -596,7 +473,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
 
             const SizedBox(height: 24),
 
-            Theme(
+             Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
                 title: const Text('Steps', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
@@ -605,48 +482,34 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                 initiallyExpanded: true,
                 iconColor: Colors.black,
                 collapsedIconColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 children: [
                   TextFormField(
                     enabled: !_isLocked,
-                    maxLines: 3,
+                    maxLines: 5,
                     controller: _stepsController,
                     decoration: InputDecoration(
+                      hintText: 'Describe how to cook...',
                       filled: true,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
-                      ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
-                      ),
-                      fillColor: _isLocked ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.secondary,
+                      fillColor: _isLocked ? lockedColor : Theme.of(context).colorScheme.secondary,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
                     ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 40),
             
-            Row(
+             Row(
               children: [
                 if (isEditing)
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        disabledBackgroundColor: Theme.of(context).colorScheme.error.withAlpha(128), 
-                        disabledForegroundColor: Theme.of(context).colorScheme.onError,
                         backgroundColor: Theme.of(context).colorScheme.error,
                         foregroundColor: Theme.of(context).colorScheme.onError,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         minimumSize: const Size(0, 50),
-                        elevation: _isLocked ? 0 : 2,
                       ),
                       onPressed: _isLocked ? null : _onDelete,
                       child: const Text('Delete'),

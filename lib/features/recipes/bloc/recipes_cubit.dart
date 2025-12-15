@@ -25,6 +25,7 @@ class RecipesCubit extends Cubit<RecipesState> {
       loadRecipes();
     } catch (e) {
       emit(RecipesError('Failed to add recipe: $e'));
+      loadRecipes();
     }
   }
 
@@ -34,6 +35,7 @@ class RecipesCubit extends Cubit<RecipesState> {
       loadRecipes();
     } catch (e) {
       emit(RecipesError('Failed to update recipe: $e'));
+      loadRecipes();
     }
   }
 
@@ -43,6 +45,7 @@ class RecipesCubit extends Cubit<RecipesState> {
       loadRecipes();
     } catch (e) {
       emit(RecipesError('Failed to delete recipe: $e'));
+      loadRecipes();
     }
   }
 

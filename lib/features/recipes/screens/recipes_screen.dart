@@ -13,6 +13,7 @@ import 'filter_recipes_screen.dart';
 import '../../schedule/screens/schedule_screen.dart';
 import '../../pantry/screens/pantry_screen.dart';
 import '../../settings/screens/settings_screen.dart';
+import '../../../../core/widgets/universal_image.dart';
 
 class RecipesScreen extends StatefulWidget {
   final bool isSelectionMode;
@@ -306,7 +307,7 @@ class _RecipeCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+          color: Theme.of(context).colorScheme.primary.withAlpha(38),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
@@ -321,18 +322,22 @@ class _RecipeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
-                decoration: BoxDecoration(
+                child: UniversalImage(
                   borderRadius: BorderRadius.circular(20),
-                  image: recipe.photoPath != null
-                        ? DecorationImage(image: AssetImage(recipe.photoPath!), fit: BoxFit.cover)
-                        : null,
-                    color: Colors.white,
-                    
+                  photoPath: recipe.photoPath,
+                  photoUrl: recipe.photoUrl,
+                  fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                  placeholder: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.restaurant, color: Colors.grey),
                   ),
-                  child: recipe.photoPath == null ? const Icon(Icons.image_not_supported) : null,
                 ),
+              ),
             ),
             
             const SizedBox(height: 12),
