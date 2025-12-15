@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'firebase_options.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'features/pantry/data/pantry_repository.dart';
@@ -15,6 +16,7 @@ import 'core/constants/app_strings.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/services/sync_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +51,24 @@ class _MyAppState extends State<MyApp> {
   final recipesRepository = RecipesRepository();
   final scheduleRepository = ScheduleRepository();
   final settingsRepository = SettingsRepository();
+  final syncManager = SyncManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _initSync();
+  }
+
+  void _initSync() {
+    syncManager.syncPendingActions();
+
+    InternetConnectionChecker().onStatusChange.listen((status) {
+      if (status == InternetConnectionStatus.connected) {
+        debugPrint('Internet connected: Triggering sync...');
+        syncManager.syncPendingActions();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

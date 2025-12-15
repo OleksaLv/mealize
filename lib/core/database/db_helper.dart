@@ -191,4 +191,18 @@ class DatabaseHelper {
       recipePhotoPath: pancakes.photoPath
     ).toMap());
   }
+
+  Future<List<Map<String, dynamic>>> getPendingActions() async {
+    final db = await database;
+    return await db.query('pending_actions', orderBy: 'createdAt ASC');
+  }
+
+  Future<int> deletePendingAction(String id) async {
+    final db = await database;
+    return await db.delete(
+      'pending_actions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

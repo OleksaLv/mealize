@@ -237,7 +237,7 @@ class _PantryTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               photoPath: ingredient.photoPath,
               photoUrl: ingredient.photoUrl,
-              fallbackAssetPath: 'assets/images/placeholder_ingredient.png',
+              fallbackAssetPath: 'assets/images/placeholder_ingredient.jpg',
               placeholder: Container(
                 color: Theme.of(context).colorScheme.tertiary,
                 child: const Icon(Icons.image, size: 20),

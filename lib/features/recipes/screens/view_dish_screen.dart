@@ -259,7 +259,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                   borderRadius: BorderRadius.circular(8),
                   photoPath: _photoPath,
                   photoUrl: _photoUrl,
-                  fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                  fallbackAssetPath: 'assets/images/placeholder_dish.jpg',
                   placeholder: Container(
                     width: 100, height: 100,
                     color: Colors.grey[200],
@@ -378,7 +378,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
                               borderRadius: BorderRadius.circular(8),
                               photoPath: ing['imagePath'],
                               photoUrl: ing['imageUrl'],
-                              fallbackAssetPath: 'assets/images/placeholder_ingredient.png',
+                              fallbackAssetPath: 'assets/images/placeholder_ingredient.jpg',
                               placeholder: Container(color: Colors.grey[200]),
                             ),
                           ),

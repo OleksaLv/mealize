@@ -264,7 +264,7 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
                             borderRadius: BorderRadius.circular(8),
                             photoPath: _selectedRecipe!.photoPath,
                             photoUrl: _selectedRecipe!.photoUrl,
-                            fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                            fallbackAssetPath: 'assets/images/placeholder_dish.jpg',
                             placeholder: Container(
                                color: Colors.grey[200], 
                                child: const Icon(Icons.fastfood, color: Colors.grey)

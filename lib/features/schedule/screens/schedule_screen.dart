@@ -397,7 +397,7 @@ class _MealCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10.0),
                     photoPath: mealEntry.recipePhotoPath,
                     photoUrl: mealEntry.recipePhotoUrl,
-                    fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                    fallbackAssetPath: 'assets/images/placeholder_dish.jpg',
                     placeholder: Container(
                       color: Colors.white,
                       child: const Icon(Icons.fastfood, color: Colors.grey),

@@ -328,7 +328,7 @@ class _RecipeCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   photoPath: recipe.photoPath,
                   photoUrl: recipe.photoUrl,
-                  fallbackAssetPath: 'assets/images/placeholder_dish.png',
+                  fallbackAssetPath: 'assets/images/placeholder_dish.jpg',
                   placeholder: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
