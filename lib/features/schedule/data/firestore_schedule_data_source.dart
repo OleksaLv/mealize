@@ -4,8 +4,10 @@ import 'meal_plan_entry_model.dart';
 class FirestoreScheduleDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  DocumentReference get _mealizeRef => _firestore.collection('mealize').doc('v1');
+
   CollectionReference<MealPlanEntry> _getScheduleRef(String userId) {
-    return _firestore
+    return _mealizeRef
         .collection('users')
         .doc(userId)
         .collection('schedule')

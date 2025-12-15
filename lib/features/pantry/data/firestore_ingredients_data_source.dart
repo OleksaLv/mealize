@@ -4,16 +4,18 @@ import 'ingredient_model.dart';
 class FirestoreIngredientsDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  //Helpers
+  DocumentReference get _mealizeRef => _firestore.collection('mealize').doc('v1');
+
+  // Helpers
   CollectionReference<Ingredient> _getStandardIngredientsRef() {
-    return _firestore.collection('ingredients').withConverter<Ingredient>(
+    return _mealizeRef.collection('ingredients').withConverter<Ingredient>(
           fromFirestore: (snapshot, _) => Ingredient.fromFirestore(snapshot),
           toFirestore: (ingredient, _) => ingredient.toFirestore(),
         );
   }
 
   CollectionReference<Ingredient> _getUserCustomIngredientsRef(String userId) {
-    return _firestore
+    return _mealizeRef
         .collection('users')
         .doc(userId)
         .collection('custom_ingredients')
@@ -24,7 +26,7 @@ class FirestoreIngredientsDataSource {
   }
 
   CollectionReference<Ingredient> _getPantryRef(String userId) {
-    return _firestore
+    return _mealizeRef
         .collection('users')
         .doc(userId)
         .collection('pantry')
