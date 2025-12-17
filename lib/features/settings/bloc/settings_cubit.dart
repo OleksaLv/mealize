@@ -8,7 +8,15 @@ class SettingsCubit extends Cubit<SettingsState> {
   SettingsCubit(this._repository) : super(const SettingsState());
 
   Future<void> loadSettings() async {
-    final settings = await _repository.loadSettings();
+    await _loadLocalAndEmit();
+    
+    await _repository.syncAndFetchRemote();
+    
+    await _loadLocalAndEmit();
+  }
+
+  Future<void> _loadLocalAndEmit() async {
+    final settings = await _repository.getLocalSettings();
     emit(SettingsState(
       mealNotificationEnabled: settings['mealNotifEnabled'],
       mealNotificationTime: settings['mealNotifTime'],

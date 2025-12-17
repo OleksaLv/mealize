@@ -4,8 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../../core/database/db_helper.dart';
-import '../../../core/services/firebase_storage_service.dart';
+import '../../../core/services/sync_manager.dart';
 import 'firestore_ingredients_data_source.dart';
 import 'ingredient_model.dart';
 
@@ -14,7 +15,7 @@ class PantryRepository {
   final FirestoreIngredientsDataSource _firestoreDataSource =
       FirestoreIngredientsDataSource();
   
-  final FirebaseStorageService _storageService = FirebaseStorageService();
+  final SyncManager _syncManager = SyncManager();
   
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -23,112 +24,100 @@ class PantryRepository {
   static const String _actionDelete = 'DELETE';
   static const String _collectionPantry = 'pantry';
 
-  Future<List<Ingredient>> getPantryItems() async {
+  Future<List<Ingredient>> getLocalPantryItems() async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
-
-    if (userId != null) {
-      try {
-        final results = await Future.wait([
-          _firestoreDataSource.getStandardIngredients(),
-          _firestoreDataSource.getUserCustomIngredients(userId),
-          _firestoreDataSource.getPantry(userId),
-        ]);
-
-        final standards = results[0];
-        final customs = results[1];
-        final pantryItems = results[2];
-
-        await db.transaction((txn) async {
-          for (var item in standards) {
-            await txn.insert(
-              'ingredients',
-              item.toMap(),
-              conflictAlgorithm: ConflictAlgorithm.ignore,
-            );
-          }
-
-          for (var item in customs) {
-            await txn.insert(
-              'ingredients',
-              item.toMap(),
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          }
-
-          for (var item in pantryItems) {
-            await txn.rawUpdate(
-              'UPDATE ingredients SET quantity = ?, notes = ? WHERE id = ?',
-              [item.quantity, item.notes, item.id],
-            );
-          }
-        });
-      } catch (e) {
-        debugPrint('Offline mode: Using local data only. Error: $e');
-      }
-    }
-
     final result = await db.query('ingredients', orderBy: 'name ASC');
     return result.map((json) => Ingredient.fromMap(json)).toList();
   }
 
+  Future<List<Ingredient>> syncAndFetchRemote() async {
+    final hasConnection = await InternetConnectionChecker().hasConnection;
+    if (!hasConnection) {
+      return getLocalPantryItems();
+    }
+
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return getLocalPantryItems();
+
+    try {
+      await _syncManager.syncPendingActions();
+
+      final results = await Future.wait([
+        _firestoreDataSource.getStandardIngredients(),
+        _firestoreDataSource.getUserCustomIngredients(userId),
+        _firestoreDataSource.getPantry(userId),
+      ]);
+
+      final standards = results[0];
+      final customs = results[1];
+      final pantryItems = results[2];
+
+      final db = await _dbHelper.database;
+      await db.transaction((txn) async {
+        for (var item in standards) {
+          await txn.insert(
+            'ingredients',
+            item.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
+        }
+
+        for (var item in customs) {
+          await txn.insert(
+            'ingredients',
+            item.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        
+        final pantryMap = {for (var item in pantryItems) item.id: item};
+        
+        final localData = await txn.query('ingredients');
+        
+        for (var row in localData) {
+          final id = row['id'] as String;
+          final remoteItem = pantryMap[id];
+          
+          if (remoteItem != null) {
+            await txn.rawUpdate(
+              'UPDATE ingredients SET quantity = ?, notes = ? WHERE id = ?',
+              [remoteItem.quantity, remoteItem.notes, id],
+            );
+          } else {
+             await txn.rawUpdate(
+              'UPDATE ingredients SET quantity = 0 WHERE id = ?',
+              [id],
+            );
+          }
+        }
+      });
+      
+      debugPrint('Remote fetch & merge completed.');
+    } catch (e) {
+      debugPrint('Sync/Fetch error: $e');
+    }
+
+    return getLocalPantryItems();
+  }
+
   Future<void> addIngredient(Ingredient ingredient) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
-
+    
     await db.insert(
       'ingredients',
       ingredient.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    if (userId != null) {
-      try {
-        String? cloudPhotoUrl = ingredient.photoUrl;
-
-        if (ingredient.photoPath != null &&
-            (ingredient.photoUrl == null || ingredient.photoUrl!.isEmpty)) {
-          final file = File(ingredient.photoPath!);
-          if (file.existsSync()) {
-            cloudPhotoUrl =
-                await _storageService.uploadFile(file, 'ingredients');
-          }
-        }
-
-        final syncedIngredient = ingredient.copyWith(photoUrl: cloudPhotoUrl);
-
-        if (ingredient.isCustom) {
-          await _firestoreDataSource.saveCustomIngredient(
-              userId, syncedIngredient);
-        }
-        
-        if (ingredient.quantity > 0) {
-          await _firestoreDataSource.savePantryItem(userId, syncedIngredient);
-        }
-
-        if (cloudPhotoUrl != null && cloudPhotoUrl != ingredient.photoUrl) {
-          await db.update(
-            'ingredients',
-            {'photoUrl': cloudPhotoUrl},
-            where: 'id = ?',
-            whereArgs: [ingredient.id],
-          );
-        }
-
-      } catch (e) {
-        debugPrint('Failed to sync addIngredient. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionCreate,
-          docId: ingredient.id,
-          data: ingredient.toMap(),
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionCreate,
+      docId: ingredient.id,
+      data: ingredient.toMap(),
+    );
   }
 
   Future<void> updateIngredient(Ingredient ingredient) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     await db.update(
       'ingredients',
@@ -137,42 +126,15 @@ class PantryRepository {
       whereArgs: [ingredient.id],
     );
 
-    if (userId != null) {
-      try {
-        String? cloudPhotoUrl = ingredient.photoUrl;
-
-        if (ingredient.photoPath != null) {
-          final file = File(ingredient.photoPath!);
-          if (file.existsSync()) {
-            cloudPhotoUrl =
-                await _storageService.uploadFile(file, 'ingredients');
-          }
-        }
-
-        final syncedIngredient = ingredient.copyWith(photoUrl: cloudPhotoUrl);
-
-        if (ingredient.isCustom) {
-          await _firestoreDataSource.saveCustomIngredient(
-              userId, syncedIngredient);
-        }
-        
-        await _firestoreDataSource.savePantryItem(userId, syncedIngredient);
-
-      } catch (e) {
-        debugPrint(
-            'Failed to sync updateIngredient. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionUpdate,
-          docId: ingredient.id,
-          data: ingredient.toMap(),
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionUpdate,
+      docId: ingredient.id,
+      data: ingredient.toMap(),
+    );
   }
 
   Future<void> deleteIngredient(String id) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     final List<Map<String, dynamic>> maps = await db.query(
       'ingredients',
@@ -181,14 +143,14 @@ class PantryRepository {
     );
 
     if (maps.isEmpty) return;
-    final ingredient = Ingredient.fromMap(maps.first);
+    final ingredientMap = maps.first;
+    final photoPath = ingredientMap['photoPath'] as String?;
 
-    if (ingredient.photoPath != null) {
+    if (photoPath != null) {
       try {
-        final localFile = File(ingredient.photoPath!);
+        final localFile = File(photoPath);
         if (await localFile.exists()) {
           await localFile.delete();
-          debugPrint('Local file deleted: ${ingredient.photoPath}');
         }
       } catch (e) {
         debugPrint('Error deleting local file: $e');
@@ -201,26 +163,11 @@ class PantryRepository {
       whereArgs: [id],
     );
 
-    if (userId != null) {
-      try {
-        await _firestoreDataSource.deletePantryItem(userId, id);
-
-        if (ingredient.isCustom) {
-          await _firestoreDataSource.deleteCustomIngredient(userId, id);
-          if (ingredient.photoUrl != null) {
-            await _storageService.deleteFile(ingredient.photoUrl!);
-          }
-        }
-      } catch (e) {
-        debugPrint(
-            'Failed to sync deleteIngredient. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionDelete,
-          docId: id,
-          data: ingredient.toMap(), 
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionDelete,
+      docId: id,
+      data: ingredientMap, 
+    );
   }
 
   Future<void> _addToSyncQueue({
@@ -245,7 +192,7 @@ class PantryRepository {
       );
       debugPrint('Operation added to sync queue: $action $docId');
     } catch (e) {
-      debugPrint('Error adding to sync queue (Table might be missing): $e');
+      debugPrint('Error adding to sync queue: $e');
     }
   }
 }

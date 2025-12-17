@@ -11,17 +11,29 @@ class PantryCubit extends Cubit<PantryState> {
   Future<void> loadPantryItems() async {
     emit(PantryLoading());
     try {
-      final items = await _repository.getPantryItems();
-      emit(PantryLoaded(items));
+      final localItems = await _repository.getLocalPantryItems();
+      emit(PantryLoaded(localItems));
+      
+      final remoteItems = await _repository.syncAndFetchRemote();
+      emit(PantryLoaded(remoteItems));
+      
     } catch (e) {
-      emit(PantryError('Failed to load pantry items: $e'));
+      if (state is! PantryLoaded) {
+        emit(PantryError('Failed to load pantry items: $e'));
+      }
     }
   }
 
   Future<void> addIngredient(Ingredient ingredient) async {
     try {
       await _repository.addIngredient(ingredient);
-      loadPantryItems();
+      
+      final localItems = await _repository.getLocalPantryItems();
+      emit(PantryLoaded(localItems));
+
+      final remoteItems = await _repository.syncAndFetchRemote();
+      emit(PantryLoaded(remoteItems));
+      
     } catch (e) {
       emit(PantryError('Failed to add ingredient: $e'));
     }
@@ -30,7 +42,13 @@ class PantryCubit extends Cubit<PantryState> {
   Future<void> updateIngredient(Ingredient ingredient) async {
     try {
       await _repository.updateIngredient(ingredient);
-      loadPantryItems();
+      
+      final localItems = await _repository.getLocalPantryItems();
+      emit(PantryLoaded(localItems));
+
+      final remoteItems = await _repository.syncAndFetchRemote();
+      emit(PantryLoaded(remoteItems));
+
     } catch (e) {
       emit(PantryError('Failed to update ingredient: $e'));
     }
@@ -39,7 +57,13 @@ class PantryCubit extends Cubit<PantryState> {
   Future<void> deleteIngredient(String id) async {
     try {
       await _repository.deleteIngredient(id);
-      loadPantryItems();
+      
+      final localItems = await _repository.getLocalPantryItems();
+      emit(PantryLoaded(localItems));
+
+      final remoteItems = await _repository.syncAndFetchRemote();
+      emit(PantryLoaded(remoteItems));
+      
     } catch (e) {
       emit(PantryError('Failed to delete ingredient: $e'));
     }

@@ -11,18 +11,41 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   Future<void> loadSchedule() async {
     emit(ScheduleLoading());
     try {
-      final allMeals = await _repository.getAllMeals();
-      final now = DateTime.now();
-      final dayMeals = _filterMealsForDate(allMeals, now);
+      await _loadLocalAndEmit();
+
+      final remoteMeals = await _repository.syncAndFetchRemote();
+      
+      final currentDate = (state is ScheduleLoaded) 
+          ? (state as ScheduleLoaded).selectedDate 
+          : DateTime.now();
+          
+      final dayMeals = _filterMealsForDate(remoteMeals, currentDate);
       
       emit(ScheduleLoaded(
-        allMeals: allMeals, 
+        allMeals: remoteMeals, 
         dayMeals: dayMeals, 
-        selectedDate: now
+        selectedDate: currentDate
       ));
+      
     } catch (e) {
-      emit(ScheduleError('Failed to load schedule: $e'));
+      if (state is! ScheduleLoaded) {
+        emit(ScheduleError('Failed to load schedule: $e'));
+      }
     }
+  }
+
+  Future<void> _loadLocalAndEmit() async {
+    final allMeals = await _repository.getLocalMeals();
+    final currentDate = (state is ScheduleLoaded) 
+        ? (state as ScheduleLoaded).selectedDate 
+        : DateTime.now();
+    final dayMeals = _filterMealsForDate(allMeals, currentDate);
+    
+    emit(ScheduleLoaded(
+      allMeals: allMeals, 
+      dayMeals: dayMeals, 
+      selectedDate: currentDate
+    ));
   }
 
   void selectDate(DateTime date) {
@@ -40,7 +63,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   Future<void> addMeal(MealPlanEntry meal) async {
     try {
       await _repository.addMeal(meal);
-      _refreshData();
+      _refreshAndSync();
     } catch (e) {
       emit(ScheduleError('Failed to add meal: $e'));
     }
@@ -49,7 +72,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   Future<void> updateMeal(MealPlanEntry meal) async {
     try {
       await _repository.updateMeal(meal);
-      _refreshData();
+      _refreshAndSync();
     } catch (e) {
       emit(ScheduleError('Failed to update meal: $e'));
     }
@@ -58,26 +81,27 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   Future<void> deleteMeal(String id) async {
     try {
       await _repository.deleteMeal(id);
-      await _refreshData();
+      _refreshAndSync();
     } catch (e) {
       emit(ScheduleError('Failed to delete meal: $e'));
     }
   }
   
-  Future<void> _refreshData() async {
-    if (state is ScheduleLoaded) {
-      final currentDate = (state as ScheduleLoaded).selectedDate;
-      final allMeals = await _repository.getAllMeals();
-      final dayMeals = _filterMealsForDate(allMeals, currentDate);
-      
-      emit(ScheduleLoaded(
-        allMeals: allMeals,
-        dayMeals: dayMeals,
-        selectedDate: currentDate,
-      ));
-    } else {
-      loadSchedule();
-    }
+  Future<void> _refreshAndSync() async {
+    await _loadLocalAndEmit();
+    
+    final remoteMeals = await _repository.syncAndFetchRemote();
+    
+    final currentDate = (state is ScheduleLoaded) 
+        ? (state as ScheduleLoaded).selectedDate 
+        : DateTime.now();
+    final dayMeals = _filterMealsForDate(remoteMeals, currentDate);
+    
+    emit(ScheduleLoaded(
+      allMeals: remoteMeals,
+      dayMeals: dayMeals,
+      selectedDate: currentDate,
+    ));
   }
 
   List<MealPlanEntry> _filterMealsForDate(List<MealPlanEntry> meals, DateTime date) {
@@ -86,14 +110,5 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       meal.dateTime.month == date.month && 
       meal.dateTime.day == date.day
     ).toList();
-  }
-
-  Future<void> addMealFromUI(MealPlanEntry meal) async {
-    try {
-      await _repository.addMeal(meal);
-      _refreshData();
-    } catch (e) {
-      emit(ScheduleError('Failed to add meal: $e'));
-    }
   }
 }

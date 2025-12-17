@@ -4,8 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../../core/database/db_helper.dart';
-import '../../../core/services/firebase_storage_service.dart';
+import '../../../core/services/sync_manager.dart';
 import '../../pantry/data/ingredient_model.dart';
 import 'firestore_recipes_data_source.dart';
 import 'recipe_model.dart';
@@ -16,7 +17,7 @@ class RecipesRepository {
   final FirestoreRecipesDataSource _firestoreDataSource =
       FirestoreRecipesDataSource();
   
-  final FirebaseStorageService _storageService = FirebaseStorageService();
+  final SyncManager _syncManager = SyncManager();
   
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -25,43 +26,57 @@ class RecipesRepository {
   static const String _actionDelete = 'DELETE';
   static const String _collectionRecipes = 'recipes';
 
-  Future<List<Recipe>> getRecipes() async {
+  Future<List<Recipe>> getLocalRecipes() async {
     final db = await _dbHelper.database;
+    final result = await db.query('recipes');
+    return result.map((json) => Recipe.fromMap(json)).toList();
+  }
+
+  Future<List<Recipe>> syncAndFetchRemote() async {
+    final hasConnection = await InternetConnectionChecker().hasConnection;
+    if (!hasConnection) {
+      return getLocalRecipes();
+    }
+
     final userId = _auth.currentUser?.uid;
+    if (userId == null) return getLocalRecipes();
 
-    if (userId != null) {
-      try {
-        final results = await Future.wait([
-          _firestoreDataSource.getStandardRecipes(),
-          _firestoreDataSource.getUserCustomRecipes(userId),
-        ]);
+    try {
+      await _syncManager.syncPendingActions();
 
-        final standardRecipes = results[0];
-        final customRecipes = results[1];
-        final allCloudRecipes = [...standardRecipes, ...customRecipes];
+      final results = await Future.wait([
+        _firestoreDataSource.getStandardRecipes(),
+        _firestoreDataSource.getUserCustomRecipes(userId),
+      ]);
 
-        await db.transaction((txn) async {
-          for (var recipe in allCloudRecipes) {
-            await txn.insert(
-              'recipes',
-              recipe.toMap(),
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
+      final standardRecipes = results[0];
+      final customRecipes = results[1];
+      final allCloudRecipes = [...standardRecipes, ...customRecipes];
 
-            final ingredients =
-                await _firestoreDataSource.getIngredientsForRecipe(
-              recipeId: recipe.id,
-              isCustom: recipe.isCustom,
-              userId: userId,
-            );
+      final db = await _dbHelper.database;
+      
+      await db.transaction((txn) async {
+        for (var recipe in allCloudRecipes) {
+          await txn.insert(
+            'recipes',
+            recipe.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
 
-            await txn.delete(
-              'recipe_ingredients',
-              where: 'recipeId = ?',
-              whereArgs: [recipe.id],
-            );
+          final ingredients = await _firestoreDataSource.getIngredientsForRecipe(
+            recipeId: recipe.id,
+            isCustom: recipe.isCustom,
+            userId: userId,
+          );
 
-            for (var ing in ingredients) {
+          await txn.delete(
+            'recipe_ingredients',
+            where: 'recipeId = ?',
+            whereArgs: [recipe.id],
+          );
+
+          for (var ing in ingredients) {
+            if (ing.quantity > 0) {
               final ingToSave = IngredientInRecipe(
                 id: ing.id,
                 recipeId: recipe.id,
@@ -76,14 +91,15 @@ class RecipesRepository {
               );
             }
           }
-        });
-      } catch (e) {
-        debugPrint('Offline mode (Recipes): Using local data only. Error: $e');
-      }
+        }
+      });
+      
+      debugPrint('Remote recipes fetch & merge completed.');
+    } catch (e) {
+      debugPrint('Sync/Fetch error (Recipes): $e');
     }
 
-    final result = await db.query('recipes');
-    return result.map((json) => Recipe.fromMap(json)).toList();
+    return getLocalRecipes();
   }
 
   Future<Recipe?> getRecipeById(String id) async {
@@ -99,8 +115,7 @@ class RecipesRepository {
     return null;
   }
 
-  Future<List<IngredientInRecipe>> getIngredientsForRecipe(
-      String recipeId) async {
+  Future<List<IngredientInRecipe>> getIngredientsForRecipe(String recipeId) async {
     final db = await _dbHelper.database;
 
     final result = await db.rawQuery('''
@@ -128,10 +143,8 @@ class RecipesRepository {
     }).toList();
   }
 
-  Future<void> addRecipe(
-      Recipe recipe, List<IngredientInRecipe> ingredients) async {
+  Future<void> addRecipe(Recipe recipe, List<IngredientInRecipe> ingredients) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     await db.transaction((txn) async {
       await txn.insert(
@@ -141,59 +154,27 @@ class RecipesRepository {
       );
 
       for (var ingredient in ingredients) {
-        await txn.insert('recipe_ingredients', {
-          'id': ingredient.id,
-          'recipeId': recipe.id,
-          'ingredientId': ingredient.ingredientId,
-          'quantity': ingredient.quantity,
-        });
+        if (ingredient.quantity > 0) {
+          await txn.insert('recipe_ingredients', {
+            'id': ingredient.id,
+            'recipeId': recipe.id,
+            'ingredientId': ingredient.ingredientId,
+            'quantity': ingredient.quantity,
+          });
+        }
       }
     });
 
-    if (userId != null) {
-      try {
-        String? cloudPhotoUrl = recipe.photoUrl;
-
-        if (recipe.photoPath != null &&
-            (recipe.photoUrl == null || recipe.photoUrl!.isEmpty)) {
-          final file = File(recipe.photoPath!);
-          if (file.existsSync()) {
-            cloudPhotoUrl = await _storageService.uploadFile(file, 'recipes');
-          }
-        }
-
-        final syncedRecipe = recipe.copyWith(photoUrl: cloudPhotoUrl);
-
-        await _firestoreDataSource.addCustomRecipe(
-          userId,
-          syncedRecipe,
-          ingredients,
-        );
-
-        if (cloudPhotoUrl != null && cloudPhotoUrl != recipe.photoUrl) {
-          await db.update(
-            'recipes',
-            {'photoUrl': cloudPhotoUrl},
-            where: 'id = ?',
-            whereArgs: [recipe.id],
-          );
-        }
-      } catch (e) {
-        debugPrint('Failed to sync addRecipe. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionCreate,
-          docId: recipe.id,
-          recipe: recipe,
-          ingredients: ingredients,
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionCreate,
+      docId: recipe.id,
+      recipe: recipe,
+      ingredients: ingredients.where((i) => i.quantity > 0).toList(),
+    );
   }
 
-  Future<void> updateRecipe(
-      Recipe recipe, List<IngredientInRecipe> ingredients) async {
+  Future<void> updateRecipe(Recipe recipe, List<IngredientInRecipe> ingredients) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     await db.transaction((txn) async {
       await txn.update(
@@ -210,75 +191,55 @@ class RecipesRepository {
       );
 
       for (var ingredient in ingredients) {
-        await txn.insert('recipe_ingredients', {
-          'id': ingredient.id,
-          'recipeId': recipe.id,
-          'ingredientId': ingredient.ingredientId,
-          'quantity': ingredient.quantity,
-        });
+        if (ingredient.quantity > 0) {
+          await txn.insert('recipe_ingredients', {
+            'id': ingredient.id,
+            'recipeId': recipe.id,
+            'ingredientId': ingredient.ingredientId,
+            'quantity': ingredient.quantity,
+          });
+        }
       }
     });
 
-    if (userId != null) {
-      try {
-        String? cloudPhotoUrl = recipe.photoUrl;
-
-        if (recipe.photoPath != null) {
-          final file = File(recipe.photoPath!);
-          if (file.existsSync()) {
-            cloudPhotoUrl = await _storageService.uploadFile(file, 'recipes');
-          }
-        }
-
-        final syncedRecipe = recipe.copyWith(photoUrl: cloudPhotoUrl);
-
-        await _firestoreDataSource.updateCustomRecipe(
-          userId,
-          syncedRecipe,
-          ingredients,
-        );
-      } catch (e) {
-        debugPrint('Failed to sync updateRecipe. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionUpdate,
-          docId: recipe.id,
-          recipe: recipe,
-          ingredients: ingredients,
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionUpdate,
+      docId: recipe.id,
+      recipe: recipe,
+      ingredients: ingredients.where((i) => i.quantity > 0).toList(),
+    );
   }
 
   Future<void> deleteRecipe(String id) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     final recipeMap = await db.query('recipes', where: 'id = ?', whereArgs: [id]);
     if (recipeMap.isEmpty) return;
     final recipe = Recipe.fromMap(recipeMap.first);
 
-    await db.delete('recipes', where: 'id = ?', whereArgs: [id]);
-
-    if (userId != null) {
+    if (recipe.photoPath != null) {
       try {
-        if (recipe.isCustom) {
-          await _firestoreDataSource.deleteCustomRecipe(userId, id);
-          if (recipe.photoUrl != null) {
-            await _storageService.deleteFile(recipe.photoUrl!);
-          }
+        final localFile = File(recipe.photoPath!);
+        if (await localFile.exists()) {
+          await localFile.delete();
         }
       } catch (e) {
-        debugPrint('Failed to sync deleteRecipe. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionDelete,
-          docId: id,
-          recipe: recipe,
-          ingredients: [],
-        );
+        debugPrint('Error deleting local recipe file: $e');
       }
     }
+
+    await db.delete('recipe_ingredients', where: 'recipeId = ?', whereArgs: [id]);
+    await db.delete('recipes', where: 'id = ?', whereArgs: [id]);
+
+    await _addToSyncQueue(
+      action: _actionDelete,
+      docId: id,
+      recipe: recipe,
+      ingredients: [],
+    );
   }
 
+  // Helper Methods
   Future<List<Ingredient>> getAllIngredients() async {
     final db = await _dbHelper.database;
     final result = await db.query('ingredients', orderBy: 'name ASC');

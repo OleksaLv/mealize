@@ -12,27 +12,43 @@ class RecipesCubit extends Cubit<RecipesState> {
   Future<void> loadRecipes() async {
     emit(RecipesLoading());
     try {
-      final recipes = await _repository.getRecipes();
-      emit(RecipesLoaded(recipes));
+      final localRecipes = await _repository.getLocalRecipes();
+      emit(RecipesLoaded(localRecipes));
+
+      final remoteRecipes = await _repository.syncAndFetchRemote();
+      emit(RecipesLoaded(remoteRecipes));
+      
     } catch (e) {
-      emit(RecipesError('Failed to load recipes: $e'));
+      if (state is! RecipesLoaded) {
+        emit(RecipesError('Failed to load recipes: $e'));
+      }
     }
   }
 
   Future<void> addRecipe(Recipe recipe, List<IngredientInRecipe> ingredients) async {
     try {
       await _repository.addRecipe(recipe, ingredients);
-      loadRecipes();
+      
+      final localRecipes = await _repository.getLocalRecipes();
+      emit(RecipesLoaded(localRecipes));
+      
+      final remoteRecipes = await _repository.syncAndFetchRemote();
+      emit(RecipesLoaded(remoteRecipes));
     } catch (e) {
       emit(RecipesError('Failed to add recipe: $e'));
-      loadRecipes();
+      loadRecipes(); 
     }
   }
 
   Future<void> updateRecipe(Recipe recipe, List<IngredientInRecipe> ingredients) async {
     try {
       await _repository.updateRecipe(recipe, ingredients);
-      loadRecipes();
+      
+      final localRecipes = await _repository.getLocalRecipes();
+      emit(RecipesLoaded(localRecipes));
+      
+      final remoteRecipes = await _repository.syncAndFetchRemote();
+      emit(RecipesLoaded(remoteRecipes));
     } catch (e) {
       emit(RecipesError('Failed to update recipe: $e'));
       loadRecipes();
@@ -42,7 +58,12 @@ class RecipesCubit extends Cubit<RecipesState> {
   Future<void> deleteRecipe(String id) async {
     try {
       await _repository.deleteRecipe(id);
-      loadRecipes();
+      
+      final localRecipes = await _repository.getLocalRecipes();
+      emit(RecipesLoaded(localRecipes));
+      
+      final remoteRecipes = await _repository.syncAndFetchRemote();
+      emit(RecipesLoaded(remoteRecipes));
     } catch (e) {
       emit(RecipesError('Failed to delete recipe: $e'));
       loadRecipes();

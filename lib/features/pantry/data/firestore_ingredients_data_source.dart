@@ -6,7 +6,7 @@ class FirestoreIngredientsDataSource {
 
   DocumentReference get _mealizeRef => _firestore.collection('mealize').doc('v1');
 
-  // Helpers
+  // refs
   CollectionReference<Ingredient> _getStandardIngredientsRef() {
     return _mealizeRef.collection('ingredients').withConverter<Ingredient>(
           fromFirestore: (snapshot, _) => Ingredient.fromFirestore(snapshot),
@@ -36,6 +36,7 @@ class FirestoreIngredientsDataSource {
         );
   }
 
+  // Raw ref for writing partial data in Pantry (quantity/notes)
   CollectionReference<Map<String, dynamic>> _getPantryRawRef(String userId) {
     return _mealizeRef
         .collection('users')
@@ -43,7 +44,7 @@ class FirestoreIngredientsDataSource {
         .collection('pantry');
   }
 
-  // Read Methods
+  // read methods
   Future<List<Ingredient>> getStandardIngredients() async {
     try {
       final snapshot = await _getStandardIngredientsRef().get();
@@ -71,7 +72,7 @@ class FirestoreIngredientsDataSource {
     }
   }
 
-  // Write Methods (Custom Ingredients)
+  // write methods
   Future<void> saveCustomIngredient(String userId, Ingredient ingredient) async {
     try {
       await _getUserCustomIngredientsRef(userId)
@@ -95,6 +96,7 @@ class FirestoreIngredientsDataSource {
       final dataToSave = {
         'quantity': item.quantity,
         'notes': item.notes,
+        'updatedAt': FieldValue.serverTimestamp(),
       };
 
       await _getPantryRawRef(userId)

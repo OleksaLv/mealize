@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../../core/database/db_helper.dart';
+import '../../../core/services/sync_manager.dart';
 import 'firestore_schedule_data_source.dart';
 import 'meal_plan_entry_model.dart';
 
@@ -11,6 +13,9 @@ class ScheduleRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final FirestoreScheduleDataSource _firestoreDataSource =
       FirestoreScheduleDataSource();
+  
+  final SyncManager _syncManager = SyncManager();
+  
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static const String _actionCreate = 'CREATE';
@@ -18,28 +23,9 @@ class ScheduleRepository {
   static const String _actionDelete = 'DELETE';
   static const String _collectionSchedule = 'schedule';
 
-  Future<List<MealPlanEntry>> getAllMeals() async {
+  Future<List<MealPlanEntry>> getLocalMeals() async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
-
-    if (userId != null) {
-      try {
-        final cloudSchedule = await _firestoreDataSource.getSchedule(userId);
-
-        await db.transaction((txn) async {
-          for (var meal in cloudSchedule) {
-            await txn.insert(
-              'schedule',
-              meal.toMap(),
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          }
-        });
-      } catch (e) {
-        debugPrint('Offline mode (Schedule): Using local data only. Error: $e');
-      }
-    }
-
+    
     final result = await db.rawQuery('''
       SELECT 
         s.id, 
@@ -50,7 +36,7 @@ class ScheduleRepository {
         r.photoPath as recipePhotoPath,
         r.photoUrl as masterPhotoUrl
       FROM schedule s
-      INNER JOIN recipes r ON s.recipeId = r.id
+      LEFT JOIN recipes r ON s.recipeId = r.id
     ''');
 
     return result.map((json) {
@@ -65,9 +51,43 @@ class ScheduleRepository {
     }).toList();
   }
 
+  Future<List<MealPlanEntry>> syncAndFetchRemote() async {
+    final hasConnection = await InternetConnectionChecker().hasConnection;
+    if (!hasConnection) {
+      return getLocalMeals();
+    }
+
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return getLocalMeals();
+
+    try {
+      await _syncManager.syncPendingActions();
+
+      final cloudSchedule = await _firestoreDataSource.getSchedule(userId);
+
+      final db = await _dbHelper.database;
+      await db.transaction((txn) async {
+        await txn.delete('schedule');
+
+        for (var meal in cloudSchedule) {
+          await txn.insert(
+            'schedule',
+            meal.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      });
+      
+      debugPrint('Remote schedule fetch & merge completed.');
+    } catch (e) {
+      debugPrint('Sync/Fetch error (Schedule): $e');
+    }
+
+    return getLocalMeals();
+  }
+
   Future<void> addMeal(MealPlanEntry meal) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     await db.insert(
       'schedule',
@@ -75,23 +95,15 @@ class ScheduleRepository {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    if (userId != null) {
-      try {
-        await _firestoreDataSource.addMeal(userId, meal);
-      } catch (e) {
-        debugPrint('Failed to sync addMeal. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionCreate,
-          docId: meal.id,
-          data: meal.toMap(),
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionCreate,
+      docId: meal.id,
+      data: meal.toMap(),
+    );
   }
 
   Future<void> updateMeal(MealPlanEntry meal) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     await db.update(
       'schedule',
@@ -100,46 +112,29 @@ class ScheduleRepository {
       whereArgs: [meal.id],
     );
 
-    if (userId != null) {
-      try {
-        await _firestoreDataSource.updateMeal(userId, meal);
-      } catch (e) {
-        debugPrint('Failed to sync updateMeal. Adding to queue... Error: $e');
-        await _addToSyncQueue(
-          action: _actionUpdate,
-          docId: meal.id,
-          data: meal.toMap(),
-        );
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionUpdate,
+      docId: meal.id,
+      data: meal.toMap(),
+    );
   }
 
   Future<void> deleteMeal(String id) async {
     final db = await _dbHelper.database;
-    final userId = _auth.currentUser?.uid;
 
     final maps = await db.query('schedule', where: 'id = ?', whereArgs: [id]);
-    Map<String, dynamic>? backupData;
+    Map<String, dynamic> backupData = {};
     if (maps.isNotEmpty) {
       backupData = maps.first;
     }
 
     await db.delete('schedule', where: 'id = ?', whereArgs: [id]);
 
-    if (userId != null) {
-      try {
-        await _firestoreDataSource.deleteMeal(userId, id);
-      } catch (e) {
-        debugPrint('Failed to sync deleteMeal. Adding to queue... Error: $e');
-        if (backupData != null) {
-          await _addToSyncQueue(
-            action: _actionDelete,
-            docId: id,
-            data: backupData,
-          );
-        }
-      }
-    }
+    await _addToSyncQueue(
+      action: _actionDelete,
+      docId: id,
+      data: backupData,
+    );
   }
 
   Future<void> _addToSyncQueue({

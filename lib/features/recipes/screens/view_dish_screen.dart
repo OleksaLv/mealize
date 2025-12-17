@@ -110,7 +110,7 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
         _ingredientsList.add({
           'id': picked.id,
           'name': picked.name,
-          'quantity': 0.0,
+          'quantity': 1,
           'unit': picked.unit,
           'imagePath': picked.photoPath,
           'imageUrl': picked.photoUrl,

@@ -11,6 +11,7 @@ import 'firebase_storage_service.dart';
 import '../../features/pantry/data/firestore_ingredients_data_source.dart';
 import '../../features/recipes/data/firestore_recipes_data_source.dart';
 import '../../features/schedule/data/firestore_schedule_data_source.dart';
+import '../../features/settings/data/firestore_settings_data_source.dart';
 
 // Models
 import '../../features/pantry/data/ingredient_model.dart';
@@ -28,6 +29,7 @@ class SyncManager {
   final FirestoreIngredientsDataSource _ingredientsSource = FirestoreIngredientsDataSource();
   final FirestoreRecipesDataSource _recipesSource = FirestoreRecipesDataSource();
   final FirestoreScheduleDataSource _scheduleSource = FirestoreScheduleDataSource();
+  final FirestoreSettingsDataSource _settingsSource = FirestoreSettingsDataSource();
 
   bool _isSyncing = false;
 
@@ -36,7 +38,7 @@ class SyncManager {
     
     bool hasConnection = await InternetConnectionChecker().hasConnection;
     if (!hasConnection) {
-      debugPrint('SyncManager: No internet connection.');
+      debugPrint('SyncManager: No internet connection. Sync skipped.');
       return;
     }
 
@@ -70,11 +72,14 @@ class SyncManager {
             case 'schedule':
               success = await _syncSchedule(userId, action, docId, data);
               break;
+            case 'settings':
+              success = await _syncSettings(userId, action, docId, data);
+              break;
           }
 
           if (success) {
             await _dbHelper.deletePendingAction(id);
-            debugPrint('SyncManager: Action $id ($collection/$action) synced successfully.');
+            debugPrint('SyncManager: Action $id ($collection/$action) synced & removed from queue.');
           }
         } catch (e) {
           debugPrint('SyncManager: Failed to sync action $id: $e');
@@ -86,15 +91,20 @@ class SyncManager {
   }
 
   Future<bool> _syncPantry(String userId, String action, String docId, Map<String, dynamic> data) async {
+    var ingredient = Ingredient.fromMap(data);
+
     if (action == 'DELETE') {
       await _ingredientsSource.deletePantryItem(userId, docId);
-      try {
+      if (ingredient.isCustom) {
         await _ingredientsSource.deleteCustomIngredient(userId, docId);
-      } catch (_) {}
+        if (ingredient.photoUrl != null) {
+          try {
+             await _storageService.deleteFile(ingredient.photoUrl!);
+          } catch (_) {}
+        }
+      }
       return true;
     }
-
-    var ingredient = Ingredient.fromMap(data);
 
     if (ingredient.photoPath != null && 
        (ingredient.photoUrl == null || ingredient.photoUrl!.isEmpty)) {
@@ -108,7 +118,11 @@ class SyncManager {
       await _ingredientsSource.saveCustomIngredient(userId, ingredient);
     }
     
-    if (ingredient.quantity > 0 || action == 'UPDATE') {
+    final bool hasNotes = ingredient.notes != null && ingredient.notes!.isNotEmpty;
+    
+    if (ingredient.quantity == 0 && !hasNotes) {
+      await _ingredientsSource.deletePantryItem(userId, docId);
+    } else {
       await _ingredientsSource.savePantryItem(userId, ingredient);
     }
     
@@ -116,15 +130,20 @@ class SyncManager {
   }
 
   Future<bool> _syncRecipe(String userId, String action, String docId, Map<String, dynamic> data) async {
-    if (action == 'DELETE') {
-      await _recipesSource.deleteCustomRecipe(userId, docId);
-      return true;
-    }
-
     final recipeMap = data['recipe'] as Map<String, dynamic>;
     var recipe = Recipe.fromMap(recipeMap);
     
-    final ingredientsList = (data['ingredients'] as List).map((x) => IngredientInRecipe.fromMap(x)).toList();
+    if (action == 'DELETE') {
+      if (recipe.isCustom) {
+        await _recipesSource.deleteCustomRecipe(userId, docId);
+        if (recipe.photoUrl != null) {
+          try {
+            await _storageService.deleteFile(recipe.photoUrl!);
+          } catch (_) {}
+        }
+      }
+      return true;
+    }
 
     if (recipe.photoPath != null && 
        (recipe.photoUrl == null || recipe.photoUrl!.isEmpty)) {
@@ -133,6 +152,10 @@ class SyncManager {
         recipe = recipe.copyWith(photoUrl: cloudUrl);
       }
     }
+
+    final ingredientsList = (data['ingredients'] as List)
+        .map((x) => IngredientInRecipe.fromMap(x))
+        .toList();
 
     if (action == 'CREATE') {
       await _recipesSource.addCustomRecipe(userId, recipe, ingredientsList);
@@ -155,6 +178,11 @@ class SyncManager {
     } else if (action == 'UPDATE') {
       await _scheduleSource.updateMeal(userId, meal);
     }
+    return true;
+  }
+
+  Future<bool> _syncSettings(String userId, String action, String docId, Map<String, dynamic> data) async {
+    await _settingsSource.updateSettings(userId, data);
     return true;
   }
 

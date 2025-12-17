@@ -123,11 +123,10 @@ class _PantryScreenState extends State<PantryScreen> {
                   final filteredList = state.ingredients.where((item) {
                     final matchesSearch = item.name.toLowerCase().contains(_searchQuery.toLowerCase());
                     
-                    bool matchesFilter = true;
-                    if (_filterStandard && !_filterCustom) matchesFilter = !item.isCustom;
-                    if (!_filterStandard && _filterCustom) matchesFilter = item.isCustom;
+                    final matchesStandard = _filterStandard && !item.isCustom;
+                    final matchesCustom = _filterCustom && item.isCustom;
                     
-                    return matchesSearch && matchesFilter;
+                    return matchesSearch && (matchesStandard || matchesCustom);
                   }).toList();
 
                   if (filteredList.isEmpty) {

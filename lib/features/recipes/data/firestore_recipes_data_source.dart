@@ -7,7 +7,7 @@ class FirestoreRecipesDataSource {
 
   DocumentReference get _mealizeRef => _firestore.collection('mealize').doc('v1');
 
-  // Helpers
+  // Refs
   CollectionReference<Recipe> _getStandardRecipesRef() {
     return _mealizeRef.collection('recipes').withConverter<Recipe>(
           fromFirestore: (snapshot, _) => Recipe.fromFirestore(snapshot),
@@ -26,7 +26,6 @@ class FirestoreRecipesDataSource {
         );
   }
 
-  // Read Methods
   Future<List<Recipe>> getStandardRecipes() async {
     try {
       final snapshot = await _getStandardRecipesRef().get();
@@ -76,7 +75,7 @@ class FirestoreRecipesDataSource {
     }
   }
 
-  // Write Methods
+  // Write Methods  
   Future<void> addCustomRecipe(
     String userId, 
     Recipe recipe, 
@@ -89,6 +88,7 @@ class FirestoreRecipesDataSource {
       batch.set(recipeRef, recipe);
 
       for (var ingredient in ingredients) {
+        // Генеруємо новий ID для документа інгредієнта в підколекції
         final ingRef = recipeRef.collection('ingredientsInRecipe').doc(); 
         batch.set(ingRef, ingredient.toFirestore());
       }
