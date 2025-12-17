@@ -28,15 +28,10 @@ migrate_working_dir/
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins-dependencies
-.flutter-plugins
-.packages
 .pub-cache/
 .pub/
 /build/
 /coverage/
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
-android/.gradle
 
 # Symbolication related
 app.*.symbols
