@@ -183,29 +183,61 @@ class _ViewDishScreenState extends State<ViewDishScreen> {
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
-             mainAxisSize: MainAxisSize.min,
-             children: [
-               const Text('Delete Recipe?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-               const SizedBox(height: 20),
-               Row(children: [
-                 Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel'))),
-                 const SizedBox(width: 10),
-                 Expanded(child: ElevatedButton(
-                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                   onPressed: () {
-                     if (widget.recipe?.id != null) {
-                        context.read<RecipesCubit>().deleteRecipe(widget.recipe!.id);
-                     }
-                     Navigator.pop(ctx);
-                     Navigator.pop(context);
-                   }, 
-                   child: const Text('Delete')
-                 )),
-               ])
-             ],
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.warning_rounded, color: Colors.red, size: 64),
+              const SizedBox(height: 20),
+              Text(
+                'Delete "${widget.recipe?.name}"?',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black, height: 1.2),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Are you sure you want to delete this recipe? This action cannot be undone.',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (widget.recipe?.id != null) {
+                              context.read<RecipesCubit>().deleteRecipe(widget.recipe!.id);
+                          }
+                          Navigator.pop(ctx);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                        ),
+                        child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
