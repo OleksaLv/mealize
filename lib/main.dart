@@ -28,7 +28,7 @@ Future<void> main() async {
   );
 
   await GoogleSignIn.instance.initialize(
-    serverClientId: "746157274071-g3vbf97gfl5j87hv0jiqtlvberj3un0k.apps.googleusercontent.com",
+    serverClientId: "640257565065-hmsk27aupj3ralp24hn4viuspmkg277n.apps.googleusercontent.com",
   );
   
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
