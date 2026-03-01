@@ -6,10 +6,14 @@ import '../data/ingredient_in_recipe_model.dart';
 
 class RecipesCubit extends Cubit<RecipesState> {
   final RecipesRepository _repository;
+  bool _isLoading = false;
 
   RecipesCubit(this._repository) : super(RecipesInitial());
 
   Future<void> loadRecipes() async {
+    if (_isLoading) return;
+    _isLoading = true;
+    
     emit(RecipesLoading());
     try {
       final localRecipes = await _repository.getLocalRecipes();
@@ -22,6 +26,8 @@ class RecipesCubit extends Cubit<RecipesState> {
       if (state is! RecipesLoaded) {
         emit(RecipesError('Failed to load recipes: $e'));
       }
+    } finally {
+      _isLoading = false;
     }
   }
 

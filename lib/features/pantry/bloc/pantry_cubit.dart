@@ -5,10 +5,14 @@ import 'pantry_state.dart';
 
 class PantryCubit extends Cubit<PantryState> {
   final PantryRepository _repository;
+  bool _isLoading = false;
 
   PantryCubit(this._repository) : super(PantryInitial());
 
   Future<void> loadPantryItems() async {
+    if (_isLoading) return;
+    _isLoading = true;
+    
     emit(PantryLoading());
     try {
       final localItems = await _repository.getLocalPantryItems();
@@ -21,6 +25,8 @@ class PantryCubit extends Cubit<PantryState> {
       if (state is! PantryLoaded) {
         emit(PantryError('Failed to load pantry items: $e'));
       }
+    } finally {
+      _isLoading = false;
     }
   }
 

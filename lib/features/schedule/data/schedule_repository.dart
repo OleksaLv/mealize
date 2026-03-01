@@ -31,6 +31,7 @@ class ScheduleRepository {
         s.id, 
         s.recipeId, 
         s.dateTime, 
+        s.recipeName as localRecipeName,
         s.recipePhotoUrl,
         r.name as recipeName, 
         r.photoPath as recipePhotoPath,
@@ -42,9 +43,11 @@ class ScheduleRepository {
     return result.map((json) {
       final masterUrl = json['masterPhotoUrl'] as String?;
       final entryUrl = json['recipePhotoUrl'] as String?;
+      final joinedName = json['recipeName'] as String?;
+      final localName = json['localRecipeName'] as String?;
       
       return MealPlanEntry.fromMap(json).copyWith(
-        recipeName: json['recipeName'] as String?,
+        recipeName: joinedName ?? localName,
         recipePhotoPath: json['recipePhotoPath'] as String?,
         recipePhotoUrl: masterUrl ?? entryUrl, 
       );

@@ -19,9 +19,16 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE schedule ADD COLUMN recipeName TEXT');
+    }
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -73,6 +80,7 @@ class DatabaseHelper {
         id $idType,
         recipeId $textType,
         dateTime $textType,
+        recipeName $textNullable,
         recipePhotoUrl $textNullable,
         FOREIGN KEY (recipeId) REFERENCES recipes (id) ON DELETE CASCADE
       )

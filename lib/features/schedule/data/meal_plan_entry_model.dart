@@ -24,6 +24,7 @@ class MealPlanEntry {
       'id': id,
       'recipeId': recipeId,
       'dateTime': dateTime.toIso8601String(),
+      'recipeName': recipeName,
       'recipePhotoUrl': recipePhotoUrl,
     };
   }
@@ -44,9 +45,9 @@ class MealPlanEntry {
     
     DateTime date = DateTime.now();
     if (data['date'] is Timestamp) {
-      date = (data['date'] as Timestamp).toDate();
+      date = (data['date'] as Timestamp).toDate().toLocal();
     } else if (data['date'] is String) {
-      date = DateTime.parse(data['date']);
+      date = DateTime.parse(data['date']).toLocal();
     }
 
     return MealPlanEntry(

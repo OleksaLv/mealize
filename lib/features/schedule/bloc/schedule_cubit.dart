@@ -5,10 +5,14 @@ import 'schedule_state.dart';
 
 class ScheduleCubit extends Cubit<ScheduleState> {
   final ScheduleRepository _repository;
+  bool _isLoading = false;
 
   ScheduleCubit(this._repository) : super(ScheduleInitial());
 
   Future<void> loadSchedule() async {
+    if (_isLoading) return;
+    _isLoading = true;
+    
     emit(ScheduleLoading());
     try {
       await _loadLocalAndEmit();
@@ -31,6 +35,8 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       if (state is! ScheduleLoaded) {
         emit(ScheduleError('Failed to load schedule: $e'));
       }
+    } finally {
+      _isLoading = false;
     }
   }
 
@@ -105,10 +111,12 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }
 
   List<MealPlanEntry> _filterMealsForDate(List<MealPlanEntry> meals, DateTime date) {
-    return meals.where((meal) => 
-      meal.dateTime.year == date.year && 
-      meal.dateTime.month == date.month && 
-      meal.dateTime.day == date.day
-    ).toList();
+    final localDate = date.toLocal();
+    return meals.where((meal) {
+      final mealLocal = meal.dateTime.toLocal();
+      return mealLocal.year == localDate.year && 
+        mealLocal.month == localDate.month && 
+        mealLocal.day == localDate.day;
+    }).toList();
   }
 }

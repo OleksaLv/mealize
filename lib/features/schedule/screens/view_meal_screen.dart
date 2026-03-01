@@ -123,6 +123,9 @@ class _ViewMealScreenState extends State<ViewMealScreen> {
       id: widget.entry?.id,
       recipeId: _selectedRecipe!.id,
       dateTime: dateTime,
+      recipeName: _selectedRecipe!.name,
+      recipePhotoPath: _selectedRecipe!.photoPath,
+      recipePhotoUrl: _selectedRecipe!.photoUrl,
     );
 
     if (_isEditing) {
