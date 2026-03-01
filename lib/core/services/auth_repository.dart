@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../database/db_helper.dart';
 import '../constants/app_strings.dart';
 
 class AuthException implements Exception {
@@ -13,6 +15,7 @@ class AuthException implements Exception {
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   AuthRepository({
     FirebaseAuth? firebaseAuth,
@@ -98,10 +101,17 @@ class AuthRepository {
 
   Future<void> signOut() async {
     try {
+      await _clearLocalSessionData();
       await _googleSignIn.signOut();
       await _firebaseAuth.signOut();
     } catch (e) {
       throw AuthException(AppStrings.authSignOutError);
     }
+  }
+
+  Future<void> _clearLocalSessionData() async {
+    await _dbHelper.clearAllLocalData();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 }

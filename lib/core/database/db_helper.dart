@@ -103,4 +103,20 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  Future<void> clearAllLocalData() async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('pending_actions');
+      await txn.delete('schedule');
+      await txn.delete(
+        'recipe_ingredients',
+        where:
+            'recipeId IN (SELECT id FROM recipes WHERE isCustom = 1) '
+            'OR ingredientId IN (SELECT id FROM ingredients WHERE isCustom = 1)',
+      );
+      await txn.delete('recipes', where: 'isCustom = 1');
+      await txn.delete('ingredients', where: 'isCustom = 1');
+    });
+  }
 }
